@@ -3,6 +3,8 @@
 library. It aims to provide an interface like [ranger](https://github.com/ranger/ranger) while being lightweight, fast and
 minimal.
 
+![screenshot](cf.png)
+
 ## Compiling and Installation
 To compile, run
 
