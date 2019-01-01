@@ -170,7 +170,6 @@ int main(int argc, char* argv[])
         wprintw(status_win, "%s@%s\t%s", getenv("USER"), getenv("HOSTNAME"), dir);
         wrefresh(status_win);
 
-
         // Print all the elements and highlight the selection
         int t = 0;
         for( i=start; i<len; i++ )
@@ -245,7 +244,7 @@ int main(int argc, char* argv[])
                 selection = ( selection < 0 ) ? 0 : selection;
                 // Scrolling
                 if(len > maxy)
-                  if(selection > maxy/2)
+                  if(selection <= start + maxy/2)
                   {
                     if(start == 0)
                         wclear(current_win);
@@ -288,10 +287,9 @@ int main(int argc, char* argv[])
             case 'G':
                 selection = len - 1;
                 if(len > maxy - 2)
-                    start = len - maxy - 1;
-                // Needs to be fixed
+                    start = len - maxy + 2;
                 else
-                    start = len - 1 - maxy - 4 + 3;
+                    start = 0;
                 break;
         }
 

@@ -19,9 +19,9 @@ Apart from this, I have always wanted an alternative to ranger that is faster wh
 a similar UI.
 
 ## Todo
-- [ ] Improve Upwards Scrolling
+- [x] Improve Upwards Scrolling
 - [ ] Show sorted directories before files
-- [ ] Fix the `G` keybinding
+- [x] Fix the `G` keybinding
 - [ ] Add basic operations like renaming, copying etc.
 - [ ] Show more info in the statusbar
 - [ ] Add file previews
