@@ -28,3 +28,6 @@ a similar UI.
 - [x] Add functionality to open files
 - [x] Add image previews using w3mimgdisplay
 - [ ] Preserve aspect ratio in image previews
+- [x] Add fuzzy file search using fzf
+- [ ] Find a way to redraw windows after displaying image previews or running fzf
+- [ ] Supress output from xdg-open

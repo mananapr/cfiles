@@ -47,6 +47,22 @@ void getPreview(char *filepath, int maxy, int maxx)
     }
 }
 
+/*
+    Gets path of parent directory
+*/
+void getParentPath(char *path)
+{
+    char *p;
+    p = strrchr(path,'/');
+    path[p-path] = '\0';
+    // Parent directory is root
+    if(path[0] != '/')
+    {
+        path[0] = '/';
+        path[1] = '\0';
+    }
+}
+
 
 /*
     Creates a new window with dimensions `height` and `width` starting at `starty` and `startx`
@@ -223,16 +239,8 @@ int main(int argc, char* argv[])
         char prev_dir[250] = "";
         
         // Get path of parent directory
-        char *p;
         strcat(prev_dir, dir);
-        p = strrchr(dir,'/');
-        prev_dir[p-dir] = '\0';
-        // Parent directory is root
-        if(prev_dir[0] != '/')
-        {
-            prev_dir[0] = '/';
-            prev_dir[1] = '\0';
-        }
+        getParentPath(prev_dir);
         
         // Get path of child directory
         strcat(next_dir, dir);
@@ -268,6 +276,10 @@ int main(int argc, char* argv[])
         wrefresh(current_win);
         wrefresh(preview_win);
         
+        // For fzf file search
+        char cmd[250];
+        char buf[250];
+        FILE *fp;
 
         // Keybindings
         switch( ch = wgetch(current_win) ) {
@@ -334,6 +346,25 @@ int main(int argc, char* argv[])
                     start = len - maxy + 2;
                 else
                     start = 0;
+                break;
+
+            case 'F':
+                sprintf(cmd,"cd %s && fzf",info->pw_dir);
+                if((fp = popen(cmd,"r")) == NULL)
+                {
+                    exit(0);
+                }
+                noecho();
+                curs_set(0);
+                wrefresh(current_win);
+                wrefresh(preview_win);
+                while(fgets(buf,250,fp) != NULL){}
+                char path[250];
+                sprintf(path, "%s/%s",info->pw_dir,buf);
+                getParentPath(path);
+                strcpy(dir,path);
+                selection = 0;
+                start = 0;
                 break;
         }
 
