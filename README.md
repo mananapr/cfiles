@@ -25,3 +25,5 @@ a similar UI.
 - [ ] Add basic operations like renaming, copying etc.
 - [ ] Show more info in the statusbar
 - [ ] Add file previews
+- [ ] Add functionality to open files
+- [ ] Add image previews using w3mimgdisplay
