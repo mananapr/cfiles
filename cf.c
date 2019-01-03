@@ -17,6 +17,38 @@ int compare (const void * a, const void * b ) {
 
 
 /*
+    Opens a file using xdg-open
+*/
+void openFile(char *filepath)
+{
+    pid_t pid;
+    pid = fork();
+    if (pid == 0) 
+    {
+        execl("/usr/bin/xdg-open", "xdg-open", filepath, (char *)0);
+        exit(1);
+    }
+}
+
+
+/*
+    Gets previews of files
+*/
+void getPreview(char *filepath, int maxy, int maxx)
+{
+    pid_t pid;
+    pid = fork();
+    if (pid == 0) 
+    {
+        char command[250];
+        sprintf(command,"echo -e '0;1;%d;%d;%d;%d;;;;;%s\n4;\n3;' | /usr/lib/w3m/w3mimgdisplay",maxx*6,8,maxx*5,maxy*3,filepath);
+        system(command);
+        exit(1);
+    }
+}
+
+
+/*
     Creates a new window with dimensions `height` and `width` starting at `starty` and `startx`
 */
 WINDOW *create_newwin(int height, int width, int starty, int startx)
@@ -226,7 +258,7 @@ int main(int argc, char* argv[])
         // Get Preview of File
         else
         {
-            // Todo
+            getPreview(next_dir,maxy,maxx/2+2);
         }
        
         // Draw borders and refresh windows
@@ -255,6 +287,7 @@ int main(int argc, char* argv[])
                     }
                   }
                 break;
+
             case 'j':
                 selection++;
                 selection = ( selection > len-1 ) ? len-1 : selection;
@@ -268,22 +301,33 @@ int main(int argc, char* argv[])
                     wclear(current_win);
                  }   
                 }
+                break;
 
-                break;
             case 'l':
-                strcpy(dir, next_dir);
-                selection = 0;
-                start = 0;
+                if(len_preview != -1)
+                {
+                    strcpy(dir, next_dir);
+                    selection = 0;
+                    start = 0;
+                }
+                else
+                {
+                    // Open file
+                    openFile(next_dir);
+                }
                 break;
+
             case 'h':
                 strcpy(dir, prev_dir);
                 selection = 0;
                 start = 0;
                 break;
+
             case 'g':
                 selection = 0;
                 start = 0;
                 break;
+
             case 'G':
                 selection = len - 1;
                 if(len > maxy - 2)
