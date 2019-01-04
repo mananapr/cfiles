@@ -92,15 +92,54 @@ void openFile(char *filepath)
 void getPreview(char *filepath, int maxy, int maxx)
 {
     pid_t pid;
+    FILE *fp;
+    char buf[64];
+    
     pid = fork();
+
     if (pid == 0) 
     {
-        char command[250];
-        sprintf(command,"echo -e '0;1;%d;%d;%d;%d;;;;;%s\n4;\n3;' | /usr/lib/w3m/w3mimgdisplay",maxx*6,8,maxx*5,maxy*3,filepath);
-        system(command);
+        // Stores shell command for getting image dimensions through w3mimgdisplay
+        char getdimensions_command[250];
+        // Stores shell command for displaying image through w3mimgdisplay
+        char imgdisplay_command[250];
+        int width;
+        int height;
+        
+        // Get dimensions of image and store it as a string in `buf`
+        sprintf(getdimensions_command,"echo -e '5;%s' | /usr/lib/w3m/w3mimgdisplay",filepath);
+        if((fp = popen(getdimensions_command,"r")) == NULL)
+        {
+            exit(0);
+        }
+        while(fgets(buf,64,fp) != NULL){}
+
+        // Get Dimensions from `buf` and store them `width` and `height`
+        sscanf(buf,"%d %d", &width, &height);
+       
+       // Set appropriate maxx and maxy so that image displays within the preview_win
+        maxx = maxx * 5;
+        maxy = maxy * 5;
+    
+        // Scale the image if dimensions are bigger than preview_win
+        if(width > maxx)
+        {
+            height = height * maxx/width;
+            width = maxx;
+        }
+        if(height > maxy)
+        {
+            width = width * maxy/height;
+            height = maxy;
+        }
+        
+        // Run the w3mimgdisplay command  with appropriate arguments
+        sprintf(imgdisplay_command,"echo -e '0;1;%d;%d;%d;%d;;;;;%s\n4;\n3;' | /usr/lib/w3m/w3mimgdisplay",maxx+maxx/5,8,width,height,filepath);
+        system(imgdisplay_command);
         exit(1);
     }
 }
+
 
 /*
     Gets path of parent directory
