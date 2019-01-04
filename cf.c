@@ -190,10 +190,17 @@ int main(int argc, char* argv[])
     int selection = 0;
     char ch;
     int start = 0;
+    int clearFlag = 0;
     
     // Main Loop
     do 
     {
+        if(clearFlag == 1)
+        {
+            wclear(preview_win);
+            wrefresh(preview_win);
+            clearFlag = 0;
+        }
         // Get number of files in the home directory
         len = getNumberofFiles(dir);
         
@@ -267,6 +274,7 @@ int main(int argc, char* argv[])
         else
         {
             getPreview(next_dir,maxy,maxx/2+2);
+            clearFlag = 1;
         }
        
         // Draw borders and refresh windows
@@ -326,6 +334,7 @@ int main(int argc, char* argv[])
                 {
                     // Open file
                     openFile(next_dir);
+                    clearFlag = 1;
                 }
                 break;
 
@@ -354,10 +363,6 @@ int main(int argc, char* argv[])
                 {
                     exit(0);
                 }
-                noecho();
-                curs_set(0);
-                wrefresh(current_win);
-                wrefresh(preview_win);
                 while(fgets(buf,250,fp) != NULL){}
                 char path[250];
                 sprintf(path, "%s/%s",info->pw_dir,buf);
@@ -365,7 +370,11 @@ int main(int argc, char* argv[])
                 strcpy(dir,path);
                 selection = 0;
                 start = 0;
+                clearFlag = 1;
                 break;
+
+            case 'r':
+                clearFlag = 1;
         }
 
         
