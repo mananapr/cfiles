@@ -1,18 +1,73 @@
-// HEADERS
+/*
+           __ _ _
+      ___ / _(_) | ___  ___
+     / __| |_| | |/ _ \/ __|
+    | (__|  _| | |  __/\__ \
+     \___|_| |_|_|\___||___/
+
+*/
+
+
+/////////////
+// HEADERS //
+/////////////
 #include <stdio.h>
 #include <dirent.h>
 #include <curses.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <pwd.h>
+
+
+//////////////////////
+// GLOBAL VARIABLES //
+//////////////////////
+/*
+    Base directory to be used for sorting
+    `dir` for current_win
+    `next_dir` for preview_win
+*/
+char sort_dir[250];
+
+
+//////////////////////
+// HELPER FUNCTIONS //
+//////////////////////
+/*
+    Checks if `path` is a file or directory
+*/
+int is_regular_file(const char *path)
+{
+    struct stat path_stat;
+    stat(path, &path_stat);
+    return S_ISREG(path_stat.st_mode);
+}
 
 
 /*
     For qsort
 */
-int compare (const void * a, const void * b ) {
-  return strcmp(*(char **)a, *(char **)b);
+int compare (const void * a, const void * b )
+{
+    char temp_filepath1[250]="";
+    char temp_filepath2[250]="";
+    strcat(temp_filepath1,sort_dir);
+    strcat(temp_filepath1,"/");
+    strcat(temp_filepath1,*(char **)a);
+    strcat(temp_filepath2,sort_dir);
+    strcat(temp_filepath2,"/");
+    strcat(temp_filepath2,*(char **)b);
+
+    if(is_regular_file(temp_filepath1) == 0 && is_regular_file(temp_filepath2) == 1)
+        return -1;
+    else if(is_regular_file(temp_filepath1) == 1 && is_regular_file(temp_filepath2) == 0)
+        return 1;
+    else
+        return strcasecmp(*(char **)a, *(char **)b);
 }
 
 
@@ -122,6 +177,10 @@ void getFiles(char* directory, char* target[])
 }
 
 
+///////////////////
+// MAIN FUNCTION //
+///////////////////
+
 int main(int argc, char* argv[])
 {
     // To store number of files in directory
@@ -223,6 +282,7 @@ int main(int argc, char* argv[])
         char* directories[len];
         getFiles(dir, directories);
         // Sort files by name
+        strcpy(sort_dir,dir);
         qsort (directories, len, sizeof (char*), compare);
         
         // Select the file in `last` and set `start` accordingly
@@ -238,7 +298,8 @@ int main(int argc, char* argv[])
                 }
             if(len > maxy)
             {
-                start = selection - maxy + 3;
+                if(selection > maxy)
+                    start = selection - maxy + 3;
             }
         }
         
@@ -308,6 +369,7 @@ int main(int argc, char* argv[])
         getFiles(next_dir, next_directories);
         
         // Selection is a directory
+        strcpy(sort_dir,next_dir);
         if(len_preview > 0)
             qsort(next_directories, len_preview, sizeof (char*), compare);
         

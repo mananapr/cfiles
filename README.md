@@ -20,7 +20,7 @@ a similar UI.
 
 ## Todo
 - [x] Improve Upwards Scrolling
-- [ ] Show sorted directories before files
+- [x] Show sorted directories before files
 - [x] Fix the `G` keybinding
 - [ ] Add basic operations like renaming, copying etc.
 - [ ] Show more info in the statusbar
