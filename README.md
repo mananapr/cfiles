@@ -34,6 +34,6 @@ a similar UI.
 - [x] Select the file directly from fzf
 - [x] Supress output from xdg-open
 - [x] Find a way to remember selection position of parent directory
-- [ ] Add open in terminal functionality
+- [x] Add open in terminal functionality
 - [ ] Add color support
 - [ ] Add config file for easy user customizability

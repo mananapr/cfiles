@@ -578,6 +578,16 @@ int main(int argc, char* argv[])
                 clearFlag = 1;
                 searchFlag = 1;
                 break;
+            
+            // Opens bash shell in present directory
+            case 'S':
+                strcpy(temp_dir,"cd ");
+                strcat(temp_dir,dir);
+                strcat(temp_dir," && bash");
+                endwin();
+                system(temp_dir);
+                refresh();
+                break;
 
             // Clear Preview Window
             case 'r':
