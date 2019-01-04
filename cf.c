@@ -340,6 +340,10 @@ int main(int argc, char* argv[])
                 if(selection > maxy-3)
                     start = selection - maxy + 3;
             }
+
+            // Resets everything (Prevents unexpected behaviour after quitting fzf)
+            endwin();
+            refresh();
         }
         
         // Select the folder in `last` and set start accordingly

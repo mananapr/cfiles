@@ -30,7 +30,7 @@ a similar UI.
 - [x] Preserve aspect ratio in image previews
 - [x] Add fuzzy file search using fzf
 - [x] Find a way to redraw windows after displaying image previews or running fzf
-- [ ] Find a way to remove cursor after running fzf
+- [x] Find a way to remove cursor after running fzf
 - [x] Select the file directly from fzf
 - [x] Supress output from xdg-open
 - [x] Find a way to remember selection position of parent directory
