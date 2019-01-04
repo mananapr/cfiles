@@ -31,6 +31,6 @@ a similar UI.
 - [x] Add fuzzy file search using fzf
 - [x] Find a way to redraw windows after displaying image previews or running fzf
 - [ ] Find a way to remove cursor after running fzf
-- [ ] Select the file directly from fzf
+- [x] Select the file directly from fzf
 - [x] Supress output from xdg-open
-- [ ] Find a way to remember selection position of parent directory
+- [x] Find a way to remember selection position of parent directory

@@ -188,19 +188,34 @@ int main(int argc, char* argv[])
     
     // Index of currently selected item in `char* directories`
     int selection = 0;
+    // For Storing user keypress
     char ch;
+    // Index to start printing from `directories` array
     int start = 0;
+    // Flag to clear preview_win
     int clearFlag = 0;
+    // Flag is set to 1 when returning from `fzf`
+    int searchFlag = 0;
+    // Flag is set to 1 when user goes up a directory
+    int backFlag = 0;
+    // Stores the last token in the path. For eg, it will store 'a' is path is /b/a
+    char *last;
+
     
     // Main Loop
     do 
     {
+        // char array to work with strtok()
+        char temp_dir[250];
+        
+        // Clear the preview_win
         if(clearFlag == 1)
         {
             wclear(preview_win);
             wrefresh(preview_win);
             clearFlag = 0;
         }
+
         // Get number of files in the home directory
         len = getNumberofFiles(dir);
         
@@ -210,6 +225,39 @@ int main(int argc, char* argv[])
         // Sort files by name
         qsort (directories, len, sizeof (char*), compare);
         
+        // Select the file in `last` and set `start` accordingly
+        if(searchFlag == 1)
+        {
+            searchFlag = 0;
+            last[strlen(last)-1] = '\0';
+            for(i=0; i<len; i++)
+                if(strcmp(directories[i],last) == 0)
+                {
+                    selection = i;
+                    break;
+                }
+            if(len > maxy)
+            {
+                start = selection - maxy + 3;
+            }
+        }
+        
+        // Select the folder in `last` and set start accordingly
+        if(backFlag == 1)
+        {
+            backFlag = 0;
+            for(i=0; i<len; i++)
+                if(strcmp(directories[i],last) == 0)
+                {
+                    selection = i;
+                    break;
+                }
+            if(len > maxy)
+            {
+                start = selection - maxy + 3;
+            }
+        }
+
         // Get Size of terminal
         getmaxyx(stdscr, maxy, maxx);
         // Save last two rows for status_win
@@ -291,6 +339,7 @@ int main(int argc, char* argv[])
 
         // Keybindings
         switch( ch = wgetch(current_win) ) {
+            //Go up
             case 'k':
                 selection--;
                 selection = ( selection < 0 ) ? 0 : selection;
@@ -307,7 +356,8 @@ int main(int argc, char* argv[])
                     }
                   }
                 break;
-
+            
+            // Go down
             case 'j':
                 selection++;
                 selection = ( selection > len-1 ) ? len-1 : selection;
@@ -322,7 +372,8 @@ int main(int argc, char* argv[])
                  }   
                 }
                 break;
-
+            
+            // Go to child directory or open file
             case 'l':
                 if(len_preview != -1)
                 {
@@ -338,17 +389,31 @@ int main(int argc, char* argv[])
                 }
                 break;
 
+            // Go up a directory
             case 'h':
+                // Copy present directory to temp_dir to work with strtok()
+                strcpy(temp_dir, dir);
                 strcpy(dir, prev_dir);
                 selection = 0;
                 start = 0;
+                backFlag = 1;
+                // Get the last token in `temp_dir` and store it in `last`
+                char *pch;
+                pch = strtok(temp_dir,"/");
+                while (pch != NULL)
+                {
+                    last = pch;
+                    pch = strtok(NULL,"/");
+                }
                 break;
 
+            // Goto start
             case 'g':
                 selection = 0;
                 start = 0;
                 break;
 
+            // Goto end
             case 'G':
                 selection = len - 1;
                 if(len > maxy - 2)
@@ -357,6 +422,7 @@ int main(int argc, char* argv[])
                     start = 0;
                 break;
 
+            // Search using fzf
             case 'F':
                 sprintf(cmd,"cd %s && fzf",info->pw_dir);
                 if((fp = popen(cmd,"r")) == NULL)
@@ -366,15 +432,27 @@ int main(int argc, char* argv[])
                 while(fgets(buf,250,fp) != NULL){}
                 char path[250];
                 sprintf(path, "%s/%s",info->pw_dir,buf);
+                // Copy `path` into `temp_dir` to work with strtok.
+                //Then store the last token in `temp_dir` and store it in `last`.
+                strcpy(temp_dir,path);
+                pch = strtok(temp_dir,"/");
+                while (pch != NULL)
+                {
+                    last = pch;
+                    pch = strtok(NULL,"/");
+                }
                 getParentPath(path);
                 strcpy(dir,path);
                 selection = 0;
                 start = 0;
                 clearFlag = 1;
+                searchFlag = 1;
                 break;
 
+            // Clear Preview Window
             case 'r':
                 clearFlag = 1;
+                break;
         }
 
         
