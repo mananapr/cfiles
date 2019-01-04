@@ -449,6 +449,30 @@ int main(int argc, char* argv[])
                 clearFlag = 1;
                 searchFlag = 1;
                 break;
+            
+            // Search in the same directory
+            case 'f':
+                sprintf(cmd,"cd %s && ls | fzf",dir);
+                if((fp = popen(cmd,"r")) == NULL)
+                {
+                    exit(0);
+                }
+                while(fgets(buf,250,fp) != NULL){}
+                sprintf(path, "%s/%s",info->pw_dir,buf);
+                strcpy(temp_dir,path);
+                pch = strtok(temp_dir,"/");
+                while (pch != NULL)
+                {
+                    last = pch;
+                    pch = strtok(NULL,"/");
+                }
+                getParentPath(path);
+                strcpy(dir,path);
+                selection = 0;
+                start = 0;
+                clearFlag = 1;
+                searchFlag = 1;
+                break;
 
             // Clear Preview Window
             case 'r':
