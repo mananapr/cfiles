@@ -298,7 +298,7 @@ int main(int argc, char* argv[])
                 }
             if(len > maxy)
             {
-                if(selection > maxy)
+                if(selection > maxy-3)
                     start = selection - maxy + 3;
             }
         }
@@ -315,7 +315,7 @@ int main(int argc, char* argv[])
                 }
             if(len > maxy)
             {
-                if(selection > maxy)
+                if(selection > maxy-3)
                     start = selection - maxy + 3;
             }
         }
@@ -542,17 +542,16 @@ int main(int argc, char* argv[])
                 break;
         }
 
-        
         // Free Memory
         for( i=0; i<len_preview; i++ )
         {
             free(next_directories[i]);
         }
-
         for( i=0; i<len; i++ )
         {
             free(directories[i]);
         }
+
     } while( ch != 'q');
 
     endwin();
