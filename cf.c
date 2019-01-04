@@ -254,7 +254,8 @@ int main(int argc, char* argv[])
                 }
             if(len > maxy)
             {
-                start = selection - maxy + 3;
+                if(selection > maxy)
+                    start = selection - maxy + 3;
             }
         }
 
