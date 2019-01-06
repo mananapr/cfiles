@@ -22,7 +22,8 @@ a similar UI.
 - [x] Improve Upwards Scrolling
 - [x] Show sorted directories before files
 - [x] Fix the `G` keybinding
-- [x] Add basic operations like renaming, copying etc.
+- [x] Add basic operations like deleting, copying etc.
+- [ ] Add rename functionality
 - [ ] Add option to show selected file
 - [ ] Show current progress or status of copying files
 - [ ] Show more info in the statusbar
