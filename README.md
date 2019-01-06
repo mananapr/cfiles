@@ -1,5 +1,5 @@
 # cfiles
-`cfiles` is a work in progress terminal file manager written in C using the ncurses
+`cfiles` is a work in progress terminal file manager with vim like keybindings, written in C using the ncurses
 library. It aims to provide an interface like [ranger](https://github.com/ranger/ranger) while being lightweight, fast and
 minimal.
 
@@ -29,6 +29,7 @@ To install, simply move the generated executable to a directory that is in your 
 | <kbd>F</kbd> | Search using fzf in the present directory |
 | <kbd>S</kbd> | Open Shell in present directory |
 | <kbd>Space</kbd> | Add to selection list |
+| <kbd>u</kbd> | Empty selection list |
 | <kbd>y</kbd> | Copy files from selection list |
 | <kbd>v</kbd> | Move files from selection list |
 | <kbd>dD</kbd> | Move files from selection list to trash |
@@ -37,8 +38,9 @@ To install, simply move the generated executable to a directory that is in your 
 
 ## Directories Used
 `cfiles` uses `$HOME/.cache/cfiles` directory to store the clipboard file. This is used so that the clipboard
-can be shared between multiple instances of `cfiles`. That's I won't be adding tabs in `cfiles` because multiple
+can be shared between multiple instances of `cfiles`. That's why I won't be adding tabs in `cfiles` because multiple
 instances can be openend and managed by any terminal multiplexer or your window manager.
+Note that this also means the selection list will persist even if all instances are closed.
 
 `cfiles` also uses `$HOME/.local/share/Trash/files` as the Trash Directory, so make sure this directory exists before you try to delete a file.
 
