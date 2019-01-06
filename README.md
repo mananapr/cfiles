@@ -5,12 +5,42 @@ minimal.
 
 ![screenshot](cf.png)
 
+## Dependencies
+- ncurses
+- `cp`and `mv` for copying and moving
+- `fzf` for searching
+- `w3mimgdisplay` for image previews
+- `xdg-open` for opening programs
+
 ## Compiling and Installation
 To compile, run
 
    `gcc cf.c -lncurses -o cf`
 
 To install, simply move the generated executable to a directory that is in your `$PATH`
+
+## Keybindings
+| Key | Function |
+|:---:| --- |
+| <kbd>h j k l</kbd> | Navigation keys |
+| <kbd>G</kbd> | Go to end |
+| <kbd>g</kbd> | Go to top |
+| <kbd>f</kbd> | Search using fzf |
+| <kbd>F</kbd> | Search using fzf in the present directory |
+| <kbd>S</kbd> | Open Shell in present directory |
+| <kbd>Space</kbd> | Add to selection list |
+| <kbd>y</kbd> | Copy files from selection list |
+| <kbd>v</kbd> | Move files from selection list |
+| <kbd>dD</kbd> | Move files from selection list to trash |
+| <kbd>r</kbd> | Reload |
+| <kbd>q</kbd> | Quit |
+
+## Directories Used
+`cfiles` uses `$HOME/.cache/cfiles` directory to store the clipboard file. This is used so that the clipboard
+can be shared between multiple instances of `cfiles`. That's I won't be adding tabs in `cfiles` because multiple
+instances can be openend and managed by any terminal multiplexer or your window manager.
+
+`cfiles` also uses `$HOME/.local/share/Trash/files` as the Trash Directory, so make sure this directory exists before you try to delete a file.
 
 ## Why C?
 I wanted to improve my C and learn ncurses so I decided this would be an ideal project.
