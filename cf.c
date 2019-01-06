@@ -33,6 +33,21 @@
 */
 char sort_dir[250];
 
+/*
+    Stores the path for the cache directory
+*/
+char cache_path[250];
+
+/*
+    stores the path for the clipboard file
+*/
+char clipboard_path[250];
+
+/*
+    stores the path for trash
+*/
+char trash_path[250];
+
 
 //////////////////////
 // HELPER FUNCTIONS //
@@ -53,8 +68,11 @@ int is_regular_file(const char *path)
 */
 int compare (const void * a, const void * b )
 {
+    // They store the full paths of the arguments
     char temp_filepath1[250]="";
     char temp_filepath2[250]="";
+
+    // Generate full paths
     strcat(temp_filepath1,sort_dir);
     strcat(temp_filepath1,"/");
     strcat(temp_filepath1,*(char **)a);
@@ -82,6 +100,62 @@ void openFile(char *filepath)
     {
         execl("/usr/bin/xdg-open", "xdg-open", filepath, (char *)0);
         exit(1);
+    }
+}
+
+
+/*
+    Checks if path is in clipboard
+*/
+int checkClipboard(char *filepath)
+{
+    FILE *f = fopen(clipboard_path, "r");
+    char buf[250];
+    char temp[250];
+    sprintf(temp,"%s", filepath);
+    temp[strlen(temp)]='\0';
+    if(f == NULL)
+    {
+        return 0;
+    }
+    while(fgets(buf, 250, (FILE*) f))
+    {
+        buf[strlen(buf)-1] = '\0';
+        if(strcmp(temp,buf) == 0)
+            return 1;
+    }
+    fclose(f);
+    return 0;
+}
+
+
+/*
+    Writes to clipboard
+*/
+void writeClipboard(char *filepath)
+{
+    if( checkClipboard(filepath) == 1 )
+        return;
+    FILE *f = fopen(clipboard_path,"a+");
+    if (f == NULL)
+    {
+        endwin();
+        printf("Error accessing clipboard!\n");
+        exit(1);
+    }
+    fprintf(f, "%s\n", filepath);
+    fclose(f);
+}
+
+
+/*
+    Empties Clipboard
+*/
+void emptyClipboard()
+{
+    if( remove(clipboard_path) == -1)
+    {
+        return;
     }
 }
 
@@ -216,6 +290,59 @@ void getFiles(char* directory, char* target[])
 }
 
 
+/*
+    Copy files in clipboard to `present_dir`
+*/
+void copyFiles(char *present_dir)
+{
+    FILE *f = fopen(clipboard_path, "r");
+    char buf[250];
+    pid_t pid;
+    int status;
+    if(f == NULL)
+    {
+        return;
+    }
+    while(fgets(buf, 250, (FILE*) f))
+    {
+        buf[strlen(buf)-1] = '\0';
+        pid = fork();
+        if(pid == 0)
+        {
+            execl("/usr/bin/cp","cp","-r",buf,present_dir,(char *)0);
+            exit(1);
+        }
+    }
+    fclose(f);
+}
+
+/*
+    Move files in clipboard to `present_dir`
+*/
+void moveFiles(char *present_dir)
+{
+    FILE *f = fopen(clipboard_path, "r");
+    char buf[250];
+    pid_t pid;
+    int status;
+    if(f == NULL)
+    {
+        return;
+    }
+    while(fgets(buf, 250, (FILE*) f))
+    {
+        buf[strlen(buf)-1] = '\0';
+        pid = fork();
+        if(pid == 0)
+        {
+            execl("/usr/bin/mv","mv",buf,present_dir,(char *)0);
+            exit(1);
+        }
+    }
+    fclose(f);
+}
+
+
 ///////////////////
 // MAIN FUNCTION //
 ///////////////////
@@ -233,6 +360,17 @@ int main(int argc, char* argv[])
     uid_t uid = getuid();
     // Get home directory of user from UID
     struct passwd *info = getpwuid(uid);
+    
+    // Make the cache directory
+    struct stat st = {0};
+    sprintf(cache_path,"%s/.cache/cfiles",info->pw_dir);
+    if (stat(cache_path, &st) == -1) {
+        mkdir(cache_path, 0751);
+    }
+    // Set the path for the clipboard file
+    sprintf(clipboard_path,"%s/clipboard",cache_path);
+    // Set the path for trash
+    sprintf(trash_path,"%s/.local/share/Trash/files",info->pw_dir);
 
     // No Path is given in arguments
     // Set Path as $HOME
@@ -382,12 +520,18 @@ int main(int argc, char* argv[])
         int t = 0;
         for( i=start; i<len; i++ )
         {
+            strcpy(temp_dir,dir);
+            strcat(temp_dir,"/");
+            strcat(temp_dir,directories[i]);
             if(i==selection)
                 wattron(current_win, A_STANDOUT);
             else
                 wattroff(current_win, A_STANDOUT);
             wmove(current_win,t+1,2);
-            wprintw(current_win, "%.*s\n", maxx/2+2, directories[i]);
+            if( checkClipboard(temp_dir) == 0)
+                wprintw(current_win, "%.*s\n", maxx/2+2, directories[i]);
+            else
+                wprintw(current_win, "* %.*s\n", maxx/2, directories[i]);
             t++;
         }
 
@@ -443,6 +587,9 @@ int main(int argc, char* argv[])
         char buf[250];
         FILE *fp;
 
+        // For two key keybindings
+        char secondKey;
+        
         // Keybindings
         switch( ch = wgetch(current_win) ) {
             //Go up
@@ -450,7 +597,7 @@ int main(int argc, char* argv[])
                 selection--;
                 selection = ( selection < 0 ) ? 0 : selection;
                 // Scrolling
-                if(len > maxy)
+                if(len >= maxy)
                   if(selection <= start + maxy/2)
                   {
                     if(start == 0)
@@ -468,10 +615,10 @@ int main(int argc, char* argv[])
                 selection++;
                 selection = ( selection > len-1 ) ? len-1 : selection;
                 // Scrolling
-                if(len > maxy)
+                if(len >= maxy)
                   if(selection - 1 > maxy/2)
                   {
-                    if(start + maxy -2 != len)
+                    if(start + maxy - 2 != len)
                     {
                     start++;
                     wclear(current_win);
@@ -586,7 +733,39 @@ int main(int argc, char* argv[])
                 strcat(temp_dir," && bash");
                 endwin();
                 system(temp_dir);
+                start = 0;
+                selection = 0;
                 refresh();
+                break;
+
+            // Write to clipboard
+            case ' ':
+                strcpy(temp_dir,dir);
+                strcat(temp_dir,"/");
+                strcat(temp_dir,directories[selection]);
+                writeClipboard(temp_dir);
+                break;
+
+            // Empty Clipboard
+            case 'u':
+                emptyClipboard();
+                break;
+
+            // Copy clipboard contents to present directory
+            case 'y':
+                copyFiles(dir);
+                break;
+
+            // Moves clipboard contents to present directory
+            case 'v':
+                moveFiles(dir);
+                break;
+
+            // Moves clipboard contents to trash
+            case 'd':
+                secondKey = wgetch(current_win);
+                if( secondKey == 'D'  )
+                    moveFiles(trash_path);
                 break;
 
             // Clear Preview Window
