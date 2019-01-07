@@ -806,6 +806,13 @@ int main(int argc, char* argv[])
 
             // Bulk Rename
             case 'a':
+                if( access( clipboard_path, F_OK ) == -1 )
+                {
+                    strcpy(temp_dir,dir);
+                    strcat(temp_dir,"/");
+                    strcat(temp_dir,directories[selection]);
+                    writeClipboard(temp_dir);
+                }
                 renameFiles();
                 break;
 
