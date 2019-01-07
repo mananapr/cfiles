@@ -44,6 +44,11 @@ char cache_path[250];
 char clipboard_path[250];
 
 /*
+    stores the path for the temp clipboard file
+*/
+char temp_clipboard_path[250];
+
+/*
     stores the path for trash
 */
 char trash_path[250];
@@ -316,6 +321,65 @@ void copyFiles(char *present_dir)
     fclose(f);
 }
 
+
+/*
+    Rename files in clipboard
+*/
+void renameFiles()
+{
+    // For opening clipboard and temp_clipboard
+    FILE *f = fopen(clipboard_path, "r");
+    FILE *f2;
+
+    // For storing shell commands
+    char cmd[250];
+
+    // Buffers for reading clipboard and temp_clipboard
+    char buf[250];
+    char buf2[250];
+
+    // Counters used when reading clipboard and copylock_path
+    int count = 0;
+    int count2 = 0;
+    
+    // Make `temp_clipboard`
+    sprintf(cmd,"cp %s %s",clipboard_path,temp_clipboard_path);
+    system(cmd);
+    // Exit curses mode and open temp_clipboard_path in vim
+    endwin();
+    sprintf(cmd,"vim %s",temp_clipboard_path);
+    system(cmd);
+   
+    // Open clipboard and temp_clipboard and mv path from clipboard to adjacent entry in temp_clipboard
+    while(fgets(buf, 250, (FILE*) f))
+    {
+        count2=-1;
+        f2 = fopen(temp_clipboard_path,"r");
+        while(fgets(buf2, 250, (FILE*) f2))
+        {
+            count2++;
+            if(buf[strlen(buf)-1] == '\n')
+                buf[strlen(buf)-1] = '\0';
+            if(count2 == count)
+            {
+                if(buf2[strlen(buf2)-1] == '\n')
+                    buf2[strlen(buf2)-1] = '\0';
+                sprintf(cmd,"mv \"%s\" \"%s\"",buf,buf2);
+                system(cmd);
+            }
+        }
+        count++;
+        fclose(f2);
+    }
+    fclose(f);
+    // Remove clipboard and temp_clipboard
+    sprintf(cmd,"rm %s %s",temp_clipboard_path,clipboard_path);
+    system(cmd);
+    // Start curses mode
+    refresh();
+}
+
+
 /*
     Move files in clipboard to `present_dir`
 */
@@ -369,6 +433,8 @@ int main(int argc, char* argv[])
     }
     // Set the path for the clipboard file
     sprintf(clipboard_path,"%s/clipboard",cache_path);
+    // Set the path for the temp clipboard file
+    sprintf(temp_clipboard_path,"%s/clipboard.tmp",cache_path);
     // Set the path for trash
     sprintf(trash_path,"%s/.local/share/Trash/files",info->pw_dir);
 
@@ -736,6 +802,11 @@ int main(int argc, char* argv[])
                 start = 0;
                 selection = 0;
                 refresh();
+                break;
+
+            // Bulk Rename
+            case 'a':
+                renameFiles();
                 break;
 
             // Write to clipboard

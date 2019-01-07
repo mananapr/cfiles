@@ -32,6 +32,7 @@ To install, simply move the generated executable to a directory that is in your 
 | <kbd>u</kbd> | Empty selection list |
 | <kbd>y</kbd> | Copy files from selection list |
 | <kbd>v</kbd> | Move files from selection list |
+| <kbd>a</kbd> | Rename Files in selection list |
 | <kbd>dD</kbd> | Move files from selection list to trash |
 | <kbd>r</kbd> | Reload |
 | <kbd>q</kbd> | Quit |
@@ -55,8 +56,8 @@ a similar UI.
 - [x] Show sorted directories before files
 - [x] Fix the `G` keybinding
 - [x] Add basic operations like deleting, copying etc.
-- [ ] Add rename functionality
-- [ ] Add option to show selected file
+- [x] Add rename functionality
+- [ ] Add option to show selection list
 - [ ] Show current progress or status of copying files
 - [ ] Show more info in the statusbar
 - [ ] Add file previews
@@ -72,3 +73,4 @@ a similar UI.
 - [x] Add open in terminal functionality
 - [ ] Add color support
 - [ ] Add config file for easy user customizability
+- [ ] Refactor Code
