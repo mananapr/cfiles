@@ -28,7 +28,8 @@ To install, simply move the generated executable to a directory that is in your 
 | <kbd>f</kbd> | Search using fzf |
 | <kbd>F</kbd> | Search using fzf in the present directory |
 | <kbd>S</kbd> | Open Shell in present directory |
-| <kbd>Space</kbd> | Add to selection list |
+| <kbd>space</kbd> | Add to selection list |
+| <kbd>tab</kbd> | View selection list |
 | <kbd>u</kbd> | Empty selection list |
 | <kbd>y</kbd> | Copy files from selection list |
 | <kbd>v</kbd> | Move files from selection list |
@@ -57,7 +58,7 @@ a similar UI.
 - [x] Fix the `G` keybinding
 - [x] Add basic operations like deleting, copying etc.
 - [x] Add rename functionality
-- [ ] Add option to show selection list
+- [x] Add option to show selection list
 - [ ] Show current progress or status of copying files
 - [ ] Show more info in the statusbar
 - [ ] Add file previews

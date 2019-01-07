@@ -846,6 +846,26 @@ int main(int argc, char* argv[])
                     moveFiles(trash_path);
                 break;
 
+            // See selection list
+            case '\t':
+                if( access( clipboard_path, F_OK ) != -1 )
+                {
+                    sprintf(temp_dir,"less %s",clipboard_path);
+                    endwin();
+                    system(temp_dir);
+                    refresh();
+                }
+                else
+                {
+                    wclear(status_win);
+                    wattron(status_win,A_BOLD);
+                    wprintw(status_win,"\nSelection List is Empty!");
+                    wattroff(status_win,A_BOLD);
+                    wrefresh(status_win);
+                    sleep(1);
+                }
+                break;
+
             // Clear Preview Window
             case 'r':
                 clearFlag = 1;
