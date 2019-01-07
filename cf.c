@@ -740,6 +740,27 @@ int main(int argc, char* argv[])
                 else
                     start = 0;
                 break;
+            
+            // Go to top of current view
+            case 'H':
+                selection = start;
+                break;
+
+            // Go to the bottom of current view
+            case 'L':
+                if(len >= maxy)
+                    selection = start + maxy - 3;
+                else
+                    selection = len - 1;
+                break;
+            
+            // Go to the middle of current view
+            case 'M':
+                if( len >= maxy )
+                    selection = start + maxy/2;
+                else
+                    selection = (len / 2) - 1;
+                break;
 
             // Search using fzf
             case 'F':
@@ -851,6 +872,26 @@ int main(int argc, char* argv[])
                 if( access( clipboard_path, F_OK ) != -1 )
                 {
                     sprintf(temp_dir,"less %s",clipboard_path);
+                    endwin();
+                    system(temp_dir);
+                    refresh();
+                }
+                else
+                {
+                    wclear(status_win);
+                    wattron(status_win,A_BOLD);
+                    wprintw(status_win,"\nSelection List is Empty!");
+                    wattroff(status_win,A_BOLD);
+                    wrefresh(status_win);
+                    sleep(1);
+                }
+                break;
+
+            // Edit selection list
+            case 'e':
+                if( access( clipboard_path, F_OK ) != -1 )
+                {
+                    sprintf(temp_dir,"vim %s",clipboard_path);
                     endwin();
                     system(temp_dir);
                     refresh();

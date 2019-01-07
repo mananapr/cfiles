@@ -25,11 +25,15 @@ To install, simply move the generated executable to a directory that is in your 
 | <kbd>h j k l</kbd> | Navigation keys |
 | <kbd>G</kbd> | Go to end |
 | <kbd>g</kbd> | Go to top |
+| <kbd>H</kbd> | Go to top of current view |
+| <kbd>M</kbd> | Go to middle of current view |
+| <kbd>L</kbd> | Go to bottom of current view |
 | <kbd>f</kbd> | Search using fzf |
 | <kbd>F</kbd> | Search using fzf in the present directory |
 | <kbd>S</kbd> | Open Shell in present directory |
 | <kbd>space</kbd> | Add to selection list |
 | <kbd>tab</kbd> | View selection list |
+| <kbd>e</kbd> | Edit selection list |
 | <kbd>u</kbd> | Empty selection list |
 | <kbd>y</kbd> | Copy files from selection list |
 | <kbd>v</kbd> | Move files from selection list |
