@@ -26,6 +26,25 @@
 //////////////////////
 // GLOBAL VARIABLES //
 //////////////////////
+
+// To store number of files in directory
+int len=0;
+
+// To store number of files in child directory
+int len_preview=0;
+
+// Counter variable
+int i = 0;
+
+// Direcotry to be opened
+char* dir;
+
+// char array to work with strtok() and for other one time use
+char temp_dir[250];
+
+// Stores Home Directory of User
+struct passwd *info;
+
 /*
     Base directory to be used for sorting
     `dir` for current_win
@@ -33,30 +52,97 @@
 */
 char sort_dir[250];
 
-/*
-    Stores the path for the cache directory
-*/
+// Stores the path for the cache directory
 char cache_path[250];
 
-/*
-    stores the path for the clipboard file
-*/
+// Stores the path for the clipboard file
 char clipboard_path[250];
 
-/*
-    stores the path for the temp clipboard file
-*/
+// Stores the path for the temp clipboard file
 char temp_clipboard_path[250];
 
-/*
-    stores the path for trash
-*/
+// Stores the path for trash
 char trash_path[250];
+
+// Index of currently selected item in `char* directories`
+int selection = 0;
+
+// Index to start printing from `directories` array
+int start = 0;
+
+// Flag to clear preview_win
+int clearFlag = 0;
+
+// Flag is set to 1 when returning from `fzf`
+int searchFlag = 0;
+
+// Flag is set to 1 when user goes up a directory
+int backFlag = 0;
+
+// Stores the last token in the path. For eg, it will store 'a' is path is /b/a
+char *last;
+
+// Shows current directory
+WINDOW *current_win;
+
+// Shows child directory preview
+WINDOW *preview_win;
+
+// Shows status bar
+WINDOW *status_win;
+
+// Shows keybindings
+WINDOW *keys_win;
+
+// To store maximum height & width of terminal and store start x and y positions of windows
+int startx, starty, maxx, maxy;
 
 
 //////////////////////
 // HELPER FUNCTIONS //
 //////////////////////
+
+/*
+	Initializes the program
+	Sets the relevant file paths
+*/
+void init()
+{
+    // Get UID of user
+    uid_t uid = getuid();
+    // Get home directory of user from UID
+    info = getpwuid(uid);
+    
+    // Make the cache directory
+    struct stat st = {0};
+    sprintf(cache_path,"%s/.cache/cfiles",info->pw_dir);
+    if (stat(cache_path, &st) == -1) {
+        mkdir(cache_path, 0751);
+    }
+
+    // Set the path for the clipboard file
+    sprintf(clipboard_path,"%s/clipboard",cache_path);
+    // Set the path for the temp clipboard file
+    sprintf(temp_clipboard_path,"%s/clipboard.tmp",cache_path);
+    // Set the path for trash
+    sprintf(trash_path,"%s/.local/share/Trash/files",info->pw_dir);
+
+    // Set dir as $HOME
+    dir = info->pw_dir;
+}
+
+
+/*
+	Initializes ncurses
+*/
+void curses_init()
+{
+    initscr();
+    noecho();
+    curs_set(0);
+}
+
+
 /*
     Checks if `path` is a file or directory
 */
@@ -65,6 +151,18 @@ int is_regular_file(const char *path)
     struct stat path_stat;
     stat(path, &path_stat);
     return S_ISREG(path_stat.st_mode);
+}
+
+
+/*
+	Checks if a file exists or not
+*/
+int fileExists(char *file)
+{
+	if( access( file, F_OK ) != -1 )
+		return 1;
+	else
+		return 0;
 }
 
 
@@ -186,7 +284,7 @@ void getPreview(char *filepath, int maxy, int maxx)
         int height;
         
         // Get dimensions of image and store it as a string in `buf`
-        sprintf(getdimensions_command,"echo -e '5;%s' | /usr/lib/w3m/w3mimgdisplay",filepath);
+        sprintf(getdimensions_command,"echo -e \'5;%s' | /usr/lib/w3m/w3mimgdisplay",filepath);
         if((fp = popen(getdimensions_command,"r")) == NULL)
         {
             exit(0);
@@ -308,17 +406,38 @@ void copyFiles(char *present_dir)
     {
         return;
     }
+    endwin();
     while(fgets(buf, 250, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
-        pid = fork();
-        if(pid == 0)
-        {
-            execl("/usr/bin/cp","cp","-r",buf,present_dir,(char *)0);
-            exit(1);
-        }
+        sprintf(temp_dir,"cp -r -v \"%s\" \"%s\"",buf,present_dir);
+        system(temp_dir);
     }
+    refresh();
     fclose(f);
+}
+
+/*
+    Removes files in clipboard
+*/
+void removeFiles()
+{
+    FILE *f = fopen(clipboard_path, "r");
+    char buf[250];
+    if(f == NULL)
+    {
+        return;
+    }
+    endwin();
+    while(fgets(buf, 250, (FILE*) f))
+    {
+        buf[strlen(buf)-1] = '\0';
+        sprintf(temp_dir,"rm -r -v \"%s\"",buf);
+        system(temp_dir);
+    }
+    refresh();
+    fclose(f);
+    remove(clipboard_path);
 }
 
 
@@ -387,23 +506,21 @@ void moveFiles(char *present_dir)
 {
     FILE *f = fopen(clipboard_path, "r");
     char buf[250];
-    pid_t pid;
     int status;
     if(f == NULL)
     {
         return;
     }
+    endwin();
     while(fgets(buf, 250, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
-        pid = fork();
-        if(pid == 0)
-        {
-            execl("/usr/bin/mv","mv",buf,present_dir,(char *)0);
-            exit(1);
-        }
+        sprintf(temp_dir,"mv -f \"%s\" \"%s\"",buf,present_dir);
+        system(temp_dir);
     }
     fclose(f);
+    refresh();
+    remove(clipboard_path);
 }
 
 
@@ -413,103 +530,16 @@ void moveFiles(char *present_dir)
 
 int main(int argc, char* argv[])
 {
-    // To store number of files in directory
-    int len=0;
-    // Counter variable
-    int i = 0;
-    // Direcotry to be opened
-    char* dir;
-
-    // Get UID of user
-    uid_t uid = getuid();
-    // Get home directory of user from UID
-    struct passwd *info = getpwuid(uid);
+	// Initialization
+    init();
+    curses_init();
     
-    // Make the cache directory
-    struct stat st = {0};
-    sprintf(cache_path,"%s/.cache/cfiles",info->pw_dir);
-    if (stat(cache_path, &st) == -1) {
-        mkdir(cache_path, 0751);
-    }
-    // Set the path for the clipboard file
-    sprintf(clipboard_path,"%s/clipboard",cache_path);
-    // Set the path for the temp clipboard file
-    sprintf(temp_clipboard_path,"%s/clipboard.tmp",cache_path);
-    // Set the path for trash
-    sprintf(trash_path,"%s/.local/share/Trash/files",info->pw_dir);
-
-    // No Path is given in arguments
-    // Set Path as $HOME
-    if(argc == 1)
-    {
-        dir = info->pw_dir;
-    }
-
-    // Path is given in arguments
-    // Set Path as the argument
-    else if(argc == 2)
-    {
-        dir = argv[1];
-
-        // Relative Path Given
-        if(dir[0] != '/')
-        {
-            // Add path of $HOME before the Relative Path
-            char temp[250] = "";
-            strcat(temp,info->pw_dir);
-            strcat(temp,"/");
-            strcat(temp,dir);
-            dir = temp;
-        }   
-    }
-
-    // Incorrect Useage
-    else
-    {
-        printf("Incorrect Useage\n");
-        exit(0);
-    }
-
-    // Stores number of files in the present directory
-    len = 0;
-
-    // ncurses initialization
-    initscr();
-    noecho();
-    curs_set(0);
-   
-
-    // Shows current directory
-    WINDOW *current_win;
-    // Shows child directory preview
-    WINDOW *preview_win;
-    // Shows status bar
-    WINDOW *status_win;
-
-    int startx, starty, midx, midy, maxx, maxy;
-    
-    // Index of currently selected item in `char* directories`
-    int selection = 0;
     // For Storing user keypress
     char ch;
-    // Index to start printing from `directories` array
-    int start = 0;
-    // Flag to clear preview_win
-    int clearFlag = 0;
-    // Flag is set to 1 when returning from `fzf`
-    int searchFlag = 0;
-    // Flag is set to 1 when user goes up a directory
-    int backFlag = 0;
-    // Stores the last token in the path. For eg, it will store 'a' is path is /b/a
-    char *last;
 
-    
     // Main Loop
     do 
     {
-        // char array to work with strtok()
-        char temp_dir[250];
-        
         // Clear the preview_win
         if(clearFlag == 1)
         {
@@ -526,7 +556,13 @@ int main(int argc, char* argv[])
         getFiles(dir, directories);
         // Sort files by name
         strcpy(sort_dir,dir);
-        qsort (directories, len, sizeof (char*), compare);
+        qsort(directories, len, sizeof (char*), compare);
+    	
+    	// In case the last file is selected and it get's removed or moved	
+    	if(selection > len-1)
+    	{
+    		selection = len-1;
+    	}
         
         // Select the file in `last` and set `start` accordingly
         if(searchFlag == 1)
@@ -617,7 +653,8 @@ int main(int argc, char* argv[])
         strcat(next_dir, "/");
         strcat(next_dir, directories[selection]);
         // Stores number of files in the child directory
-        int len_preview = getNumberofFiles(next_dir);
+        len_preview = getNumberofFiles(next_dir);
+        // Stores files in the child directory
         char* next_directories[len_preview];
         getFiles(next_dir, next_directories);
         
@@ -627,19 +664,22 @@ int main(int argc, char* argv[])
             qsort(next_directories, len_preview, sizeof (char*), compare);
         
         // Selection is not a directory
-        if(len_preview != -1)
-            for( i=0; i<len_preview; i++ )
-            {
-                wmove(preview_win,i+1,2);
-                wprintw(preview_win, "%.*s\n", maxx/2 - 2, next_directories[i]);
-            }
-
-        // Get Preview of File
-        else
+        if(len != 0)
         {
-            getPreview(next_dir,maxy,maxx/2+2);
-            clearFlag = 1;
-        }
+	        if(len_preview != -1)
+	            for( i=0; i<len_preview; i++ )
+	            {
+	                wmove(preview_win,i+1,2);
+	                wprintw(preview_win, "%.*s\n", maxx/2 - 2, next_directories[i]);
+	            }
+
+	        // Get Preview of File
+	        else
+	        {
+	            getPreview(next_dir,maxy,maxx/2+2);
+	            clearFlag = 1;
+	        }
+	    }
        
         // Draw borders and refresh windows
         wattroff(current_win, A_STANDOUT);
@@ -764,8 +804,9 @@ int main(int argc, char* argv[])
 
             // Search using fzf
             case 'F':
-                sprintf(cmd,"cd %s && fzf",info->pw_dir);
-                if((fp = popen(cmd,"r")) == NULL)
+                sprintf(temp_dir,"cd %s && fzf",info->pw_dir);
+                endwin();
+                if((fp = popen(temp_dir,"r")) == NULL)
                 {
                     exit(0);
                 }
@@ -862,9 +903,41 @@ int main(int argc, char* argv[])
 
             // Moves clipboard contents to trash
             case 'd':
-                secondKey = wgetch(current_win);
-                if( secondKey == 'D'  )
-                    moveFiles(trash_path);
+            	if( fileExists(clipboard_path) == 1 )
+            	{
+	                keys_win = create_newwin(3, maxx, maxy-3, 0);
+	                wprintw(keys_win,"Key\tCommand");
+	                wprintw(keys_win,"\nd\tMove to Trash");
+	                wprintw(keys_win,"\nD\tDelete");
+	                wrefresh(keys_win);
+	                secondKey = wgetch(current_win);
+	                delwin(keys_win);
+	                if( secondKey == 'd' )
+	                    moveFiles(trash_path);
+	                else if( secondKey == 'D' )
+	                {
+	                	wclear(status_win);
+	                	wprintw(status_win, "\nConfirm (y/n): ");
+	                	wrefresh(status_win);
+	                	char confirm = wgetch(status_win);
+	                	if(confirm == 'y')
+	                		removeFiles();
+	                	else
+	                	{
+	                		wclear(status_win);
+	                		wprintw(status_win, "\nABORTED");
+	                		wrefresh(status_win);
+	                		sleep(1);
+	                	}
+	                }
+	            }
+	            else
+	            {
+	            	wclear(status_win);
+	            	wprintw(status_win,"\nSelect some files first!");
+	            	wrefresh(status_win);
+	            	sleep(1);
+	            }
                 break;
 
             // See selection list
@@ -889,7 +962,7 @@ int main(int argc, char* argv[])
 
             // Edit selection list
             case 'e':
-                if( access( clipboard_path, F_OK ) != -1 )
+                if( fileExists(clipboard_path) == 1 )
                 {
                     sprintf(temp_dir,"vim %s",clipboard_path);
                     endwin();
@@ -925,6 +998,7 @@ int main(int argc, char* argv[])
 
     } while( ch != 'q');
 
+    // End curses mode
     endwin();
     return 0;
 }

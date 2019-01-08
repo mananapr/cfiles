@@ -38,7 +38,8 @@ To install, simply move the generated executable to a directory that is in your 
 | <kbd>y</kbd> | Copy files from selection list |
 | <kbd>v</kbd> | Move files from selection list |
 | <kbd>a</kbd> | Rename Files in selection list |
-| <kbd>dD</kbd> | Move files from selection list to trash |
+| <kbd>dd</kbd> | Move files from selection list to trash |
+| <kbd>dD</kbd> | Remove selected files |
 | <kbd>r</kbd> | Reload |
 | <kbd>q</kbd> | Quit |
 
