@@ -64,7 +64,7 @@ a similar UI.
 - [x] Add basic operations like deleting, copying etc.
 - [x] Add rename functionality
 - [x] Add option to show selection list
-- [ ] Show current progress or status of copying files
+- [x] Show current progress or status of copying files
 - [ ] Show more info in the statusbar
 - [ ] Add file previews
 - [x] Add functionality to open files
