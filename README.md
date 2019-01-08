@@ -12,6 +12,7 @@ minimal.
 - `w3mimgdisplay` for image previews
 - `xdg-open` for opening programs
 - `vim` for renaming, bulk renaming and editing clipboard
+- `mediainfo` for viewing media info and file sizes
 
 ## Compiling and Installation
 To compile, run
@@ -41,6 +42,7 @@ To install, simply move the generated executable to a directory that is in your 
 | <kbd>a</kbd> | Rename Files in selection list |
 | <kbd>dd</kbd> | Move files from selection list to trash |
 | <kbd>dD</kbd> | Remove selected files |
+| <kbd>i</kbd> | View mediainfo and general info |
 | <kbd>r</kbd> | Reload |
 | <kbd>q</kbd> | Quit |
 

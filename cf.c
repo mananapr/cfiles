@@ -340,7 +340,11 @@ void getImgPreview(char *filepath, int maxy, int maxx)
 */
 void getTextPreview(char *filepath, int maxy, int maxx)
 {
-    pid_t pid;
+    // Don't Generate Preview if file size > 50MB
+    struct stat st;
+    stat(filepath, &st);
+    if(st.st_size > 50000000)
+        return;
     FILE *fp = fopen(filepath,"r");
     char buf[250];
     int t=0; 
@@ -361,9 +365,24 @@ void getTextPreview(char *filepath, int maxy, int maxx)
 */
 void getVidPreview(char *filepath, int maxy, int maxx)
 {
-    pid_t pid;
+    char buf[250];
+    sprintf(temp_dir,"mediainfo \"%s\" > ~/.cache/cfiles/preview",filepath);
+    system(temp_dir);
+    sprintf(temp_dir,"%s/preview",cache_path);
+    sprintf(buf, "less %s", temp_dir);
+    endwin();
+    system(buf);
+    refresh();
+}
+
+
+/*
+    Gets previews of video files (Dummy)
+*/
+void getDummyVidPreview(char *filepath, int maxy, int maxx)
+{
     wmove(preview_win,1,2);
-    wprintw(preview_win,"%.*s",maxx-4,"Video File");
+    wprintw(preview_win,"%.*s",maxx-4,"Press i to see info");
     wrefresh(preview_win);
 }
 
@@ -385,9 +404,12 @@ void getPreview(char *filepath, int maxy, int maxx)
 {
     getFileType(filepath);
     if(strcasecmp("jpg",last) == 0 || strcasecmp("png",last) == 0 || strcasecmp("mp3",last) == 0)
+    {
         getImgPreview(filepath, maxy, maxx);
+        clearFlag = 1;
+    }
     else if(strcasecmp("mp4",last) == 0 || strcasecmp("mkv",last) == 0 || strcasecmp("avi",last) == 0)
-        getVidPreview(filepath, maxy, maxx);
+        getDummyVidPreview(filepath, maxy, maxx);
     else
         getTextPreview(filepath, maxy, maxx);
 }
@@ -752,7 +774,6 @@ int main(int argc, char* argv[])
 	        else
 	        {
 	            getPreview(next_dir,maxy,maxx/2+2);
-	            clearFlag = 1;
 	        }
 	    }
        
@@ -916,9 +937,7 @@ int main(int argc, char* argv[])
             
             // Opens bash shell in present directory
             case 'S':
-                strcpy(temp_dir,"cd ");
-                strcat(temp_dir,dir);
-                strcat(temp_dir," && bash");
+                sprintf(temp_dir,"cd \"%s\" && bash",dir);
                 endwin();
                 system(temp_dir);
                 start = 0;
@@ -1038,6 +1057,11 @@ int main(int argc, char* argv[])
                     wrefresh(status_win);
                     sleep(1);
                 }
+                break;
+
+            // View Preview
+            case 'i':
+                getVidPreview(next_dir,maxy,maxx/2+2);
                 break;
 
             // Clear Preview Window
