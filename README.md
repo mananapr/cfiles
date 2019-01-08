@@ -76,9 +76,10 @@ a similar UI.
 - [x] Supress output from xdg-open
 - [x] Find a way to remember selection position of parent directory
 - [x] Add open in terminal functionality
+- [x] Add file previews
+- [x] Improve file previews
 - [ ] Refactor Code
 - [ ] Fix random segfaults
-- [ ] Add file previews
 - [ ] Show more info in the statusbar
 - [ ] Add config file for easy user customizability
 - [ ] Add color support

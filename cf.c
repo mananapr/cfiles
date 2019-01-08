@@ -42,6 +42,9 @@ char* dir;
 // char array to work with strtok() and for other one time use
 char temp_dir[250];
 
+// To work with strtok()
+char *pch;
+
 // Stores Home Directory of User
 struct passwd *info;
 
@@ -140,6 +143,20 @@ void curses_init()
     initscr();
     noecho();
     curs_set(0);
+}
+
+
+/*
+    Gets the last token from temp_dir by using `tokenizer` as a delimeter
+*/
+void getLastToken(char *tokenizer)
+{
+    pch = strtok(temp_dir, tokenizer);
+    while (pch != NULL)
+    {
+        last = pch;
+        pch = strtok(NULL,tokenizer);
+    }
 }
 
 
@@ -264,9 +281,9 @@ void emptyClipboard()
 
 
 /*
-    Gets previews of files
+    Gets previews of images
 */
-void getPreview(char *filepath, int maxy, int maxx)
+void getImgPreview(char *filepath, int maxy, int maxx)
 {
     pid_t pid;
     FILE *fp;
@@ -315,6 +332,64 @@ void getPreview(char *filepath, int maxy, int maxx)
         system(imgdisplay_command);
         exit(1);
     }
+}
+
+
+/*
+    Gets previews of text in files
+*/
+void getTextPreview(char *filepath, int maxy, int maxx)
+{
+    pid_t pid;
+    FILE *fp = fopen(filepath,"r");
+    char buf[250];
+    int t=0; 
+    while(fgets(buf, 250, (FILE*) fp))
+    {
+        wmove(preview_win,t+1,2);
+        wprintw(preview_win,"%.*s",maxx-4,buf);
+        t++;
+    }
+    wrefresh(preview_win);
+
+    fclose(fp);
+}
+
+
+/*
+    Gets previews of video files
+*/
+void getVidPreview(char *filepath, int maxy, int maxx)
+{
+    pid_t pid;
+    wmove(preview_win,1,2);
+    wprintw(preview_win,"%.*s",maxx-4,"Video File");
+    wrefresh(preview_win);
+}
+
+
+/*
+    Sets `temp_dir` to filepath and then stores the extension in `last`
+*/
+void getFileType(char *filepath)
+{
+    strcpy(temp_dir, filepath);
+    getLastToken(".");
+}
+
+
+/*
+    Checks `last` for extension and then calls the appropriate preview function    
+*/
+void getPreview(char *filepath, int maxy, int maxx)
+{
+    getFileType(filepath);
+    if(strcasecmp("jpg",last) == 0 || strcasecmp("png",last) == 0 || strcasecmp("mp3",last) == 0)
+        getImgPreview(filepath, maxy, maxx);
+    else if(strcasecmp("mp4",last) == 0 || strcasecmp("mkv",last) == 0 || strcasecmp("avi",last) == 0)
+        getVidPreview(filepath, maxy, maxx);
+    else
+        getTextPreview(filepath, maxy, maxx);
 }
 
 
@@ -757,13 +832,7 @@ int main(int argc, char* argv[])
                 start = 0;
                 backFlag = 1;
                 // Get the last token in `temp_dir` and store it in `last`
-                char *pch;
-                pch = strtok(temp_dir,"/");
-                while (pch != NULL)
-                {
-                    last = pch;
-                    pch = strtok(NULL,"/");
-                }
+                getLastToken("/");
                 break;
 
             // Goto start
@@ -814,14 +883,9 @@ int main(int argc, char* argv[])
                 char path[250];
                 sprintf(path, "%s/%s",info->pw_dir,buf);
                 // Copy `path` into `temp_dir` to work with strtok.
-                //Then store the last token in `temp_dir` and store it in `last`.
+                //Then fetch the last token from `temp_dir` and store it in `last`.
                 strcpy(temp_dir,path);
-                pch = strtok(temp_dir,"/");
-                while (pch != NULL)
-                {
-                    last = pch;
-                    pch = strtok(NULL,"/");
-                }
+                getLastToken("/");
                 getParentPath(path);
                 strcpy(dir,path);
                 selection = 0;
@@ -833,6 +897,7 @@ int main(int argc, char* argv[])
             // Search in the same directory
             case 'f':
                 sprintf(cmd,"cd %s && ls | fzf",dir);
+                endwin();
                 if((fp = popen(cmd,"r")) == NULL)
                 {
                     exit(0);
@@ -840,12 +905,7 @@ int main(int argc, char* argv[])
                 while(fgets(buf,250,fp) != NULL){}
                 sprintf(path, "%s/%s",info->pw_dir,buf);
                 strcpy(temp_dir,path);
-                pch = strtok(temp_dir,"/");
-                while (pch != NULL)
-                {
-                    last = pch;
-                    pch = strtok(NULL,"/");
-                }
+                getLastToken("/");
                 getParentPath(path);
                 strcpy(dir,path);
                 selection = 0;
