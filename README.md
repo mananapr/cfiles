@@ -11,6 +11,7 @@ minimal.
 - `fzf` for searching
 - `w3mimgdisplay` for image previews
 - `xdg-open` for opening programs
+- `vim` for renaming, bulk renaming and editing clipboard
 
 ## Compiling and Installation
 To compile, run
@@ -65,8 +66,6 @@ a similar UI.
 - [x] Add rename functionality
 - [x] Add option to show selection list
 - [x] Show current progress or status of copying files
-- [ ] Show more info in the statusbar
-- [ ] Add file previews
 - [x] Add functionality to open files
 - [x] Add image previews using w3mimgdisplay
 - [x] Preserve aspect ratio in image previews
@@ -77,6 +76,9 @@ a similar UI.
 - [x] Supress output from xdg-open
 - [x] Find a way to remember selection position of parent directory
 - [x] Add open in terminal functionality
-- [ ] Add color support
-- [ ] Add config file for easy user customizability
 - [ ] Refactor Code
+- [ ] Fix random segfaults
+- [ ] Add file previews
+- [ ] Show more info in the statusbar
+- [ ] Add config file for easy user customizability
+- [ ] Add color support
