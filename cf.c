@@ -21,6 +21,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
+#include "config.h"
 
 
 //////////////////////
@@ -367,10 +368,10 @@ void getVidPreview(char *filepath, int maxy, int maxx)
 {
     char buf[250];
     sprintf(temp_dir,"mediainfo \"%s\" > ~/.cache/cfiles/preview",filepath);
+    endwin();
     system(temp_dir);
     sprintf(temp_dir,"%s/preview",cache_path);
     sprintf(buf, "less %s", temp_dir);
-    endwin();
     system(buf);
     refresh();
 }
@@ -621,6 +622,93 @@ void moveFiles(char *present_dir)
 }
 
 
+/*
+    Creates current_win, preview_win and status_win
+*/
+void init_windows()
+{
+    current_win = create_newwin(maxy, maxx/2+3, 0, 0);
+    preview_win = create_newwin(maxy, maxx/2 -1, 0, maxx/2 + 1);
+    status_win = create_newwin(2, maxx, maxy, 0);
+}
+
+
+/*
+    Displays current status in the status bar
+*/
+void displayStatus()
+{
+    wmove(status_win,1,1);
+    wprintw(status_win, "%s@%s\t%s", getenv("USER"), getenv("HOSTNAME"), dir);
+    wrefresh(status_win);
+}
+
+
+/*
+*/
+void refreshWindows()
+{
+    box(current_win,0,0);
+    box(preview_win,0,0);
+    wrefresh(current_win);
+    wrefresh(preview_win);
+}
+
+
+/*
+   Checks if some flags are enabled and handles them accordingly 
+*/
+void handleFlags(char** directories)
+{
+    // Clear the preview_win
+    if(clearFlag == 1)
+    {
+        wclear(preview_win);
+        wrefresh(preview_win);
+        clearFlag = 0;
+    }
+
+    // Select the file in `last` and set `start` accordingly
+    if(searchFlag == 1)
+    {
+        searchFlag = 0;
+        last[strlen(last)-1] = '\0';
+        for(i=0; i<len; i++)
+            if(strcmp(directories[i],last) == 0)
+            {
+                selection = i;
+                break;
+            }
+        if(len > maxy)
+        {
+            if(selection > maxy-3)
+                start = selection - maxy + 3;
+        }
+
+        // Resets everything (Prevents unexpected behaviour after quitting fzf)
+        endwin();
+        refresh();
+    }
+    
+    // Select the folder in `last` and set start accordingly
+    if(backFlag == 1)
+    {
+        backFlag = 0;
+        for(i=0; i<len; i++)
+            if(strcmp(directories[i],last) == 0)
+            {
+                selection = i;
+                break;
+            }
+        if(len > maxy)
+        {
+            if(selection > maxy-3)
+                start = selection - maxy + 3;
+        }
+    }
+}
+
+
 ///////////////////
 // MAIN FUNCTION //
 ///////////////////
@@ -637,14 +725,6 @@ int main(int argc, char* argv[])
     // Main Loop
     do 
     {
-        // Clear the preview_win
-        if(clearFlag == 1)
-        {
-            wclear(preview_win);
-            wrefresh(preview_win);
-            clearFlag = 0;
-        }
-
         // Get number of files in the home directory
         len = getNumberofFiles(dir);
         
@@ -660,60 +740,20 @@ int main(int argc, char* argv[])
     	{
     		selection = len-1;
     	}
-        
-        // Select the file in `last` and set `start` accordingly
-        if(searchFlag == 1)
-        {
-            searchFlag = 0;
-            last[strlen(last)-1] = '\0';
-            for(i=0; i<len; i++)
-                if(strcmp(directories[i],last) == 0)
-                {
-                    selection = i;
-                    break;
-                }
-            if(len > maxy)
-            {
-                if(selection > maxy-3)
-                    start = selection - maxy + 3;
-            }
 
-            // Resets everything (Prevents unexpected behaviour after quitting fzf)
-            endwin();
-            refresh();
-        }
+        // Check if some flag are set to true and handle them accordingly
+        handleFlags(directories);
         
-        // Select the folder in `last` and set start accordingly
-        if(backFlag == 1)
-        {
-            backFlag = 0;
-            for(i=0; i<len; i++)
-                if(strcmp(directories[i],last) == 0)
-                {
-                    selection = i;
-                    break;
-                }
-            if(len > maxy)
-            {
-                if(selection > maxy-3)
-                    start = selection - maxy + 3;
-            }
-        }
-
         // Get Size of terminal
         getmaxyx(stdscr, maxy, maxx);
         // Save last two rows for status_win
         maxy = maxy - 2;
     
-        // Make the two windows side-by-side
-        current_win = create_newwin(maxy, maxx/2+3, 0, 0);
-        preview_win = create_newwin(maxy, maxx/2 -1, 0, maxx/2 + 1);
-        status_win = create_newwin(2, maxx, maxy, 0);
+        // Make the two windows side-by-side and make the status window
+        init_windows();
         
         // Display Status
-        wmove(status_win,1,1);
-        wprintw(status_win, "%s@%s\t%s", getenv("USER"), getenv("HOSTNAME"), dir);
-        wrefresh(status_win);
+        displayStatus();
 
         // Print all the elements and highlight the selection
         int t = 0;
@@ -776,13 +816,11 @@ int main(int argc, char* argv[])
 	            getPreview(next_dir,maxy,maxx/2+2);
 	        }
 	    }
-       
-        // Draw borders and refresh windows
+        
+        // Disable STANDOUT attribute if enabled
         wattroff(current_win, A_STANDOUT);
-        box(current_win,0,0);
-        box(preview_win,0,0);
-        wrefresh(current_win);
-        wrefresh(preview_win);
+        // Draw borders and refresh windows
+        refreshWindows();
         
         // For fzf file search
         char cmd[250];
@@ -790,7 +828,9 @@ int main(int argc, char* argv[])
         FILE *fp;
 
         // For two key keybindings
-        char secondKey;
+        char secondKey; 
+        // For taking user confirmation
+        char confirm;
         
         // Keybindings
         switch( ch = wgetch(current_win) ) {
@@ -857,13 +897,13 @@ int main(int argc, char* argv[])
                 break;
 
             // Goto start
-            case 'g':
+            case KEY_START:
                 selection = 0;
                 start = 0;
                 break;
 
             // Goto end
-            case 'G':
+            case KEY_GOEND:
                 selection = len - 1;
                 if(len > maxy - 2)
                     start = len - maxy + 2;
@@ -872,12 +912,12 @@ int main(int argc, char* argv[])
                 break;
             
             // Go to top of current view
-            case 'H':
+            case KEY_TOP:
                 selection = start;
                 break;
 
             // Go to the bottom of current view
-            case 'L':
+            case KEY_BOTTOM:
                 if(len >= maxy)
                     selection = start + maxy - 3;
                 else
@@ -885,7 +925,7 @@ int main(int argc, char* argv[])
                 break;
             
             // Go to the middle of current view
-            case 'M':
+            case KEY_MID:
                 if( len >= maxy )
                     selection = start + maxy/2;
                 else
@@ -893,7 +933,7 @@ int main(int argc, char* argv[])
                 break;
 
             // Search using fzf
-            case 'F':
+            case KEY_SEARCHALL:
                 sprintf(temp_dir,"cd %s && fzf",info->pw_dir);
                 endwin();
                 if((fp = popen(temp_dir,"r")) == NULL)
@@ -916,7 +956,7 @@ int main(int argc, char* argv[])
                 break;
             
             // Search in the same directory
-            case 'f':
+            case KEY_SEARCHDIR:
                 sprintf(cmd,"cd %s && ls | fzf",dir);
                 endwin();
                 if((fp = popen(cmd,"r")) == NULL)
@@ -936,7 +976,7 @@ int main(int argc, char* argv[])
                 break;
             
             // Opens bash shell in present directory
-            case 'S':
+            case KEY_SHELL:
                 sprintf(temp_dir,"cd \"%s\" && bash",dir);
                 endwin();
                 system(temp_dir);
@@ -946,7 +986,7 @@ int main(int argc, char* argv[])
                 break;
 
             // Bulk Rename
-            case 'a':
+            case KEY_RENAME:
                 if( access( clipboard_path, F_OK ) == -1 )
                 {
                     strcpy(temp_dir,dir);
@@ -958,7 +998,7 @@ int main(int argc, char* argv[])
                 break;
 
             // Write to clipboard
-            case ' ':
+            case KEY_SEL:
                 strcpy(temp_dir,dir);
                 strcat(temp_dir,"/");
                 strcat(temp_dir,directories[selection]);
@@ -966,39 +1006,39 @@ int main(int argc, char* argv[])
                 break;
 
             // Empty Clipboard
-            case 'u':
+            case KEY_EMPTYSEL:
                 emptyClipboard();
                 break;
 
             // Copy clipboard contents to present directory
-            case 'y':
+            case KEY_YANK:
                 copyFiles(dir);
                 break;
 
             // Moves clipboard contents to present directory
-            case 'v':
+            case KEY_MV:
                 moveFiles(dir);
                 break;
 
             // Moves clipboard contents to trash
-            case 'd':
+            case KEY_REMOVEMENU:
             	if( fileExists(clipboard_path) == 1 )
             	{
 	                keys_win = create_newwin(3, maxx, maxy-3, 0);
 	                wprintw(keys_win,"Key\tCommand");
-	                wprintw(keys_win,"\nd\tMove to Trash");
-	                wprintw(keys_win,"\nD\tDelete");
+	                wprintw(keys_win,"\n%c\tMove to Trash", KEY_TRASH);
+	                wprintw(keys_win,"\n%c\tDelete", KEY_DELETE);
 	                wrefresh(keys_win);
 	                secondKey = wgetch(current_win);
 	                delwin(keys_win);
-	                if( secondKey == 'd' )
+	                if( secondKey == KEY_TRASH )
 	                    moveFiles(trash_path);
-	                else if( secondKey == 'D' )
+	                else if( secondKey == KEY_DELETE )
 	                {
 	                	wclear(status_win);
 	                	wprintw(status_win, "\nConfirm (y/n): ");
 	                	wrefresh(status_win);
-	                	char confirm = wgetch(status_win);
+	                	confirm = wgetch(status_win);
 	                	if(confirm == 'y')
 	                		removeFiles();
 	                	else
@@ -1020,7 +1060,7 @@ int main(int argc, char* argv[])
                 break;
 
             // See selection list
-            case '\t':
+            case KEY_VIEWSEL:
                 if( access( clipboard_path, F_OK ) != -1 )
                 {
                     sprintf(temp_dir,"less %s",clipboard_path);
@@ -1040,7 +1080,7 @@ int main(int argc, char* argv[])
                 break;
 
             // Edit selection list
-            case 'e':
+            case KEY_EDITSEL:
                 if( fileExists(clipboard_path) == 1 )
                 {
                     sprintf(temp_dir,"vim %s",clipboard_path);
@@ -1060,12 +1100,12 @@ int main(int argc, char* argv[])
                 break;
 
             // View Preview
-            case 'i':
+            case KEY_INFO:
                 getVidPreview(next_dir,maxy,maxx/2+2);
                 break;
 
             // Clear Preview Window
-            case 'r':
+            case KEY_RELOAD:
                 clearFlag = 1;
                 break;
         }
