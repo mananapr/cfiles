@@ -2,6 +2,14 @@
 #define CONFIG
 
 /*
+    cfiles settings
+*/
+
+// Set to 1 if you want to see hidden files on startup
+#define SHOW_HIDDEN 0
+
+
+/*
     Change your keybindings in this section    
 */
 
@@ -61,6 +69,9 @@
 
 // Open Shell
 #define KEY_SHELL 'S'
+
+// Toggle Hiddem Files
+#define KEY_TOGGLEHIDE '.'
 
 // Reload
 #define KEY_RELOAD 'r'

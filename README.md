@@ -43,6 +43,7 @@ To install, simply move the generated executable to a directory that is in your 
 | <kbd>dd</kbd> | Move files from selection list to trash |
 | <kbd>dD</kbd> | Remove selected files |
 | <kbd>i</kbd> | View mediainfo and general info |
+| <kbd>.</kbd> | Toggle hidden files |
 | <kbd>r</kbd> | Reload |
 | <kbd>q</kbd> | Quit |
 
@@ -81,7 +82,7 @@ a similar UI.
 - [x] Add file previews
 - [x] Improve file previews
 - [x] Add config file for easy user customizability
-- [ ] Add more options in config file
+- [x] Add more options in config file
 - [ ] Add bookmarks
 - [ ] Add ability to run external scripts
 - [ ] Refactor Code

@@ -83,6 +83,9 @@ int searchFlag = 0;
 // Flag is set to 1 when user goes up a directory
 int backFlag = 0;
 
+// Flag to display hidden files
+int hiddenFlag = SHOW_HIDDEN;
+
 // Stores the last token in the path. For eg, it will store 'a' is path is /b/a
 char *last;
 
@@ -459,9 +462,14 @@ int getNumberofFiles(char* directory)
     }
 
     while ((pDirent = readdir(pDir)) != NULL) {
-        // Skip hidden files
-      if(pDirent->d_name[0] != '.' )
+      // Skip . and ..
+      if( strcmp(pDirent->d_name,".") != 0 && strcmp(pDirent->d_name,"..") != 0 )
+      {
+        if( pDirent->d_name[0] == '.' )
+          if( hiddenFlag == 0 )
+            continue;
         len++;
+      }
     }
     return len;
 }
@@ -482,9 +490,14 @@ void getFiles(char* directory, char* target[])
     }
 
     while ((pDirent = readdir(pDir)) != NULL) {
-        // Skip hidden files
-        if(pDirent->d_name[0] != '.')
+        // Skip . and ..
+        if( strcmp(pDirent->d_name,".") != 0 && strcmp(pDirent->d_name,"..") != 0 )
+        {
+          if( pDirent->d_name[0] == '.' )
+            if( hiddenFlag == 0 )
+              continue;
           target[i++] = strdup(pDirent->d_name);
+        }
     }
 
     closedir (pDir);
@@ -957,7 +970,10 @@ int main(int argc, char* argv[])
             
             // Search in the same directory
             case KEY_SEARCHDIR:
-                sprintf(cmd,"cd %s && ls | fzf",dir);
+                if( hiddenFlag == 1 )
+                    sprintf(cmd,"cd %s && ls -a | fzf",dir);
+                else
+                    sprintf(cmd,"cd %s && ls | fzf",dir);
                 endwin();
                 if((fp = popen(cmd,"r")) == NULL)
                 {
@@ -1102,6 +1118,16 @@ int main(int argc, char* argv[])
             // View Preview
             case KEY_INFO:
                 getVidPreview(next_dir,maxy,maxx/2+2);
+                break;
+
+            // Enable/Disable hidden files
+            case KEY_TOGGLEHIDE:
+                if( hiddenFlag == 1 )
+                    hiddenFlag = 0;
+                else
+                    hiddenFlag = 1;
+                start = 0;
+                selection = 0;
                 break;
 
             // Clear Preview Window
