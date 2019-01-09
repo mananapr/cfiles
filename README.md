@@ -80,8 +80,11 @@ a similar UI.
 - [x] Add open in terminal functionality
 - [x] Add file previews
 - [x] Improve file previews
+- [x] Add config file for easy user customizability
+- [ ] Add more options in config file
+- [ ] Add bookmarks
+- [ ] Add ability to run external scripts
 - [ ] Refactor Code
 - [ ] Fix random segfaults
 - [ ] Show more info in the statusbar
-- [ ] Add config file for easy user customizability
 - [ ] Add color support
