@@ -85,7 +85,7 @@ a similar UI.
 - [x] Add more options in config file
 - [x] Fix random segfaults
 - [x] Show more info in the statusbar
+- [x] Add color support
 - [ ] Add bookmarks
 - [ ] Add ability to run external scripts
 - [ ] Refactor Code
-- [ ] Add color support

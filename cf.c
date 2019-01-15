@@ -40,6 +40,9 @@ int i = 0;
 // Direcotry to be opened
 char* dir;
 
+// Name of selected file
+char selected_file[128];
+
 // char array to work with strtok() and for other one time use
 char temp_dir[250];
 
@@ -147,6 +150,10 @@ void curses_init()
     initscr();
     noecho();
     curs_set(0);
+    start_color();
+    init_pair(1, 2, 0);
+    init_pair(2, 1, 0);
+    init_pair(3, 6, 0);
 }
 
 
@@ -692,7 +699,13 @@ void init_windows()
 void displayStatus()
 {
     wmove(status_win,1,1);
-    wprintw(status_win, "(%d/%d)\t%s@%s\t%s", selection+1, len, getenv("USER"), getenv("HOSTNAME"), dir);
+    wattron(status_win, COLOR_PAIR(2));
+    wprintw(status_win, "(%d/%d)", selection+1, len);
+    wprintw(status_win, "\t%s", dir);
+    wattroff(status_win, COLOR_PAIR(2));
+    wattron(status_win, COLOR_PAIR(3));
+    wprintw(status_win, "/%s", selected_file);
+    wattroff(status_win, COLOR_PAIR(3));
     wrefresh(status_win);
 }
 
@@ -806,9 +819,6 @@ int main(int argc, char* argv[])
         // Make the two windows side-by-side and make the status window
         init_windows();
 
-        // Display Status
-        displayStatus();
-
         // Print all the elements and highlight the selection
         int t = 0;
         for( i=start; i<len; i++ )
@@ -818,6 +828,16 @@ int main(int argc, char* argv[])
                 wattron(current_win, A_STANDOUT);
             else
                 wattroff(current_win, A_STANDOUT);
+            if( is_regular_file(temp_dir) == 0 )
+            {
+                wattron(current_win, A_BOLD);
+                wattron(current_win, COLOR_PAIR(1));
+            }
+            else
+            {
+                wattroff(current_win, A_BOLD);
+                wattroff(current_win, COLOR_PAIR(1));
+            }
             wmove(current_win,t+1,2);
             if( checkClipboard(temp_dir) == 0)
                 wprintw(current_win, "%.*s\n", maxx/2+2, directories[i]);
@@ -825,9 +845,13 @@ int main(int argc, char* argv[])
                 wprintw(current_win, "* %.*s\n", maxx/2, directories[i]);
             t++;
         }
+        
+        // Store name of selected file
+        strcpy(selected_file, directories[selection]);
 
-        // Name of selected file
-        char* selected_file = directories[selection];
+        // Display Status
+        displayStatus();
+
         // Stores files in the selected directory
         char next_dir[250] = "";
         // Stores path of parent directory
@@ -857,6 +881,17 @@ int main(int argc, char* argv[])
                 for( i=0; i<len_preview; i++ )
                 {
                     wmove(preview_win,i+1,2);
+                    sprintf(temp_dir, "%s/%s", next_dir, next_directories[i]);
+                    if( is_regular_file(temp_dir) == 0 )
+                    {
+                        wattron(preview_win, A_BOLD);
+                        wattron(preview_win, COLOR_PAIR(1));
+                    }
+                    else
+                    {
+                        wattroff(preview_win, A_BOLD);
+                        wattroff(preview_win, COLOR_PAIR(1));
+                    }
                     wprintw(preview_win, "%.*s\n", maxx/2 - 2, next_directories[i]);
                 }
 
@@ -869,6 +904,8 @@ int main(int argc, char* argv[])
 
         // Disable STANDOUT attribute if enabled
         wattroff(current_win, A_STANDOUT);
+        wattroff(current_win, COLOR_PAIR(1));
+        wattroff(preview_win, COLOR_PAIR(1));
         // Draw borders and refresh windows
         refreshWindows();
 
