@@ -33,7 +33,7 @@ To install, simply move the generated executable to a directory that is in your 
 | <kbd>f</kbd> | Search using fzf |
 | <kbd>F</kbd> | Search using fzf in the present directory |
 | <kbd>S</kbd> | Open Shell in present directory |
-| <kbd>space</kbd> | Add to selection list |
+| <kbd>space</kbd> | Add/Remove to/from selection list |
 | <kbd>tab</kbd> | View selection list |
 | <kbd>e</kbd> | Edit selection list |
 | <kbd>u</kbd> | Empty selection list |
@@ -83,9 +83,9 @@ a similar UI.
 - [x] Improve file previews
 - [x] Add config file for easy user customizability
 - [x] Add more options in config file
+- [x] Fix random segfaults
+- [x] Show more info in the statusbar
 - [ ] Add bookmarks
 - [ ] Add ability to run external scripts
 - [ ] Refactor Code
-- [ ] Fix random segfaults
-- [ ] Show more info in the statusbar
 - [ ] Add color support

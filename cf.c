@@ -110,8 +110,8 @@ int startx, starty, maxx, maxy;
 //////////////////////
 
 /*
-	Initializes the program
-	Sets the relevant file paths
+    Initializes the program
+    Sets the relevant file paths
 */
 void init()
 {
@@ -119,7 +119,7 @@ void init()
     uid_t uid = getuid();
     // Get home directory of user from UID
     info = getpwuid(uid);
-    
+
     // Make the cache directory
     struct stat st = {0};
     sprintf(cache_path,"%s/.cache/cfiles",info->pw_dir);
@@ -140,7 +140,7 @@ void init()
 
 
 /*
-	Initializes ncurses
+    Initializes ncurses
 */
 void curses_init()
 {
@@ -176,7 +176,7 @@ int is_regular_file(const char *path)
 
 
 /*
-	Checks if a file exists or not
+    Checks if a file exists or not
 */
 int fileExists(char *file)
 {
@@ -193,16 +193,12 @@ int fileExists(char *file)
 int compare (const void * a, const void * b )
 {
     // They store the full paths of the arguments
-    char temp_filepath1[250]="";
-    char temp_filepath2[250]="";
+    char temp_filepath1[250];
+    char temp_filepath2[250];
 
     // Generate full paths
-    strcat(temp_filepath1,sort_dir);
-    strcat(temp_filepath1,"/");
-    strcat(temp_filepath1,*(char **)a);
-    strcat(temp_filepath2,sort_dir);
-    strcat(temp_filepath2,"/");
-    strcat(temp_filepath2,*(char **)b);
+    sprintf(temp_filepath1,"%s/%s", sort_dir, *(char **)a);
+    sprintf(temp_filepath2,"%s/%s", sort_dir, *(char **)b);
 
     if(is_regular_file(temp_filepath1) == 0 && is_regular_file(temp_filepath2) == 1)
         return -1;
@@ -214,13 +210,43 @@ int compare (const void * a, const void * b )
 
 
 /*
+    Gets file MIME
+*/
+void getMIME(char *filepath, char mime[10])
+{
+    char cmd[250];
+    char buf[20];
+    FILE *fp;
+    sprintf(cmd, "xdg-mime query filetype %s", filepath);
+
+    if((fp = popen(cmd,"r")) == NULL)
+    {
+        exit(0);
+    }
+    while(fgets(buf,250,fp) != NULL){}
+    strtok(buf,"/");
+    strcpy(mime,buf);
+}
+
+
+/*
     Opens a file using xdg-open
 */
 void openFile(char *filepath)
 {
+    char mime[10];
+    getMIME(filepath, mime);
+    if(strcmp(mime,"text") == 0)
+    {
+        char cmd[250];
+        sprintf(cmd,"vim %s",filepath);
+        endwin();
+        system(cmd);
+        return;
+    }
     pid_t pid;
     pid = fork();
-    if (pid == 0) 
+    if (pid == 0)
     {
         execl("/usr/bin/xdg-open", "xdg-open", filepath, (char *)0);
         exit(1);
@@ -258,8 +284,6 @@ int checkClipboard(char *filepath)
 */
 void writeClipboard(char *filepath)
 {
-    if( checkClipboard(filepath) == 1 )
-        return;
     FILE *f = fopen(clipboard_path,"a+");
     if (f == NULL)
     {
@@ -269,6 +293,18 @@ void writeClipboard(char *filepath)
     }
     fprintf(f, "%s\n", filepath);
     fclose(f);
+}
+
+
+/*
+    Removes entry from clipboard
+*/
+void removeClipboard(char *filepath)
+{
+    char cmd[250];
+    filepath[strlen(filepath)-1] = '\0';
+    sprintf(cmd,"sed -i '\\|^%s|d' %s", filepath, clipboard_path);
+    system(cmd);
 }
 
 
@@ -292,10 +328,10 @@ void getImgPreview(char *filepath, int maxy, int maxx)
     pid_t pid;
     FILE *fp;
     char buf[64];
-    
+
     pid = fork();
 
-    if (pid == 0) 
+    if (pid == 0)
     {
         // Stores shell command for getting image dimensions through w3mimgdisplay
         char getdimensions_command[250];
@@ -303,7 +339,7 @@ void getImgPreview(char *filepath, int maxy, int maxx)
         char imgdisplay_command[250];
         int width;
         int height;
-        
+
         // Get dimensions of image and store it as a string in `buf`
         sprintf(getdimensions_command,"echo -e \'5;%s' | /usr/lib/w3m/w3mimgdisplay",filepath);
         if((fp = popen(getdimensions_command,"r")) == NULL)
@@ -314,11 +350,11 @@ void getImgPreview(char *filepath, int maxy, int maxx)
 
         // Get Dimensions from `buf` and store them `width` and `height`
         sscanf(buf,"%d %d", &width, &height);
-       
+
        // Set appropriate maxx and maxy so that image displays within the preview_win
         maxx = maxx * 5;
         maxy = maxy * 5;
-    
+
         // Scale the image if dimensions are bigger than preview_win
         if(width > maxx)
         {
@@ -330,7 +366,7 @@ void getImgPreview(char *filepath, int maxy, int maxx)
             width = width * maxy/height;
             height = maxy;
         }
-        
+
         // Run the w3mimgdisplay command  with appropriate arguments
         sprintf(imgdisplay_command,"echo -e '0;1;%d;%d;%d;%d;;;;;%s\n4;\n3;' | /usr/lib/w3m/w3mimgdisplay",maxx+maxx/5,8,width,height,filepath);
         system(imgdisplay_command);
@@ -347,11 +383,13 @@ void getTextPreview(char *filepath, int maxy, int maxx)
     // Don't Generate Preview if file size > 50MB
     struct stat st;
     stat(filepath, &st);
-    if(st.st_size > 50000000)
+    if(st.st_size > 10000000)
         return;
     FILE *fp = fopen(filepath,"r");
+    if(fp == NULL)
+        return;
     char buf[250];
-    int t=0; 
+    int t=0;
     while(fgets(buf, 250, (FILE*) fp))
     {
         wmove(preview_win,t+1,2);
@@ -402,7 +440,7 @@ void getFileType(char *filepath)
 
 
 /*
-    Checks `last` for extension and then calls the appropriate preview function    
+    Checks `last` for extension and then calls the appropriate preview function
 */
 void getPreview(char *filepath, int maxy, int maxx)
 {
@@ -440,7 +478,7 @@ void getParentPath(char *path)
     Creates a new window with dimensions `height` and `width` starting at `starty` and `startx`
 */
 WINDOW *create_newwin(int height, int width, int starty, int startx)
-{	
+{
     WINDOW *local_win;
     local_win = newwin(height, width, starty, startx);
     return local_win;
@@ -462,15 +500,16 @@ int getNumberofFiles(char* directory)
     }
 
     while ((pDirent = readdir(pDir)) != NULL) {
-      // Skip . and ..
-      if( strcmp(pDirent->d_name,".") != 0 && strcmp(pDirent->d_name,"..") != 0 )
-      {
-        if( pDirent->d_name[0] == '.' )
-          if( hiddenFlag == 0 )
-            continue;
-        len++;
-      }
+        // Skip . and ..
+        if( strcmp(pDirent->d_name,".") != 0 && strcmp(pDirent->d_name,"..") != 0 )
+        {
+            if( pDirent->d_name[0] == '.' )
+                if( hiddenFlag == 0 )
+                    continue;
+            len++;
+        }
     }
+    closedir (pDir);
     return len;
 }
 
@@ -478,7 +517,7 @@ int getNumberofFiles(char* directory)
 /*
     Stores all the file names in `char* directory` to `char *target[]`
 */
-void getFiles(char* directory, char* target[])
+int getFiles(char* directory, char* target[])
 {
     int i = 0;
     DIR *pDir;
@@ -486,7 +525,7 @@ void getFiles(char* directory, char* target[])
 
     pDir = opendir (directory);
     if (pDir == NULL) {
-        return;
+        return -1;
     }
 
     while ((pDirent = readdir(pDir)) != NULL) {
@@ -501,6 +540,7 @@ void getFiles(char* directory, char* target[])
     }
 
     closedir (pDir);
+    return 1;
 }
 
 
@@ -571,7 +611,7 @@ void renameFiles()
     // Counters used when reading clipboard and copylock_path
     int count = 0;
     int count2 = 0;
-    
+
     // Make `temp_clipboard`
     sprintf(cmd,"cp %s %s",clipboard_path,temp_clipboard_path);
     system(cmd);
@@ -579,7 +619,7 @@ void renameFiles()
     endwin();
     sprintf(cmd,"vim %s",temp_clipboard_path);
     system(cmd);
-   
+
     // Open clipboard and temp_clipboard and mv path from clipboard to adjacent entry in temp_clipboard
     while(fgets(buf, 250, (FILE*) f))
     {
@@ -652,7 +692,7 @@ void init_windows()
 void displayStatus()
 {
     wmove(status_win,1,1);
-    wprintw(status_win, "%s@%s\t%s", getenv("USER"), getenv("HOSTNAME"), dir);
+    wprintw(status_win, "(%d/%d)\t%s@%s\t%s", selection+1, len, getenv("USER"), getenv("HOSTNAME"), dir);
     wrefresh(status_win);
 }
 
@@ -669,7 +709,7 @@ void refreshWindows()
 
 
 /*
-   Checks if some flags are enabled and handles them accordingly 
+   Checks if some flags are enabled and handles them accordingly
 */
 void handleFlags(char** directories)
 {
@@ -702,7 +742,7 @@ void handleFlags(char** directories)
         endwin();
         refresh();
     }
-    
+
     // Select the folder in `last` and set start accordingly
     if(backFlag == 1)
     {
@@ -731,40 +771,41 @@ int main(int argc, char* argv[])
 	// Initialization
     init();
     curses_init();
-    
+
     // For Storing user keypress
     char ch;
 
     // Main Loop
-    do 
+    do
     {
         // Get number of files in the home directory
         len = getNumberofFiles(dir);
-        
+
         // Array of all the files in the current directory
         char* directories[len];
-        getFiles(dir, directories);
+        int status;
+        status = getFiles(dir, directories);
         // Sort files by name
         strcpy(sort_dir,dir);
         qsort(directories, len, sizeof (char*), compare);
-    	
-    	// In case the last file is selected and it get's removed or moved	
-    	if(selection > len-1)
-    	{
-    		selection = len-1;
-    	}
+
+        // In case the last file is selected and it get's removed or moved
+        if(selection > len-1)
+        {
+            selection = len-1;
+        }
 
         // Check if some flag are set to true and handle them accordingly
         handleFlags(directories);
-        
+
         // Get Size of terminal
         getmaxyx(stdscr, maxy, maxx);
         // Save last two rows for status_win
         maxy = maxy - 2;
-    
+
         // Make the two windows side-by-side and make the status window
         init_windows();
-        
+
         // Display Status
         displayStatus();
 
@@ -772,9 +813,7 @@ int main(int argc, char* argv[])
         int t = 0;
         for( i=start; i<len; i++ )
         {
-            strcpy(temp_dir,dir);
-            strcat(temp_dir,"/");
-            strcat(temp_dir,directories[i]);
+            sprintf(temp_dir,"%s/%s",dir,directories[i]);
             if(i==selection)
                 wattron(current_win, A_STANDOUT);
             else
@@ -793,58 +832,56 @@ int main(int argc, char* argv[])
         char next_dir[250] = "";
         // Stores path of parent directory
         char prev_dir[250] = "";
-        
+
         // Get path of parent directory
-        strcat(prev_dir, dir);
+        sprintf(prev_dir,"%s",dir);
         getParentPath(prev_dir);
-        
+
         // Get path of child directory
-        strcat(next_dir, dir);
-        strcat(next_dir, "/");
-        strcat(next_dir, directories[selection]);
+        sprintf(next_dir,"%s/%s", dir, directories[selection]);
         // Stores number of files in the child directory
         len_preview = getNumberofFiles(next_dir);
         // Stores files in the child directory
         char* next_directories[len_preview];
-        getFiles(next_dir, next_directories);
-        
+        status = getFiles(next_dir, next_directories);
+
         // Selection is a directory
         strcpy(sort_dir,next_dir);
         if(len_preview > 0)
             qsort(next_directories, len_preview, sizeof (char*), compare);
-        
+
         // Selection is not a directory
         if(len != 0)
         {
-	        if(len_preview != -1)
-	            for( i=0; i<len_preview; i++ )
-	            {
-	                wmove(preview_win,i+1,2);
-	                wprintw(preview_win, "%.*s\n", maxx/2 - 2, next_directories[i]);
-	            }
+            if(len_preview != -1)
+                for( i=0; i<len_preview; i++ )
+                {
+                    wmove(preview_win,i+1,2);
+                    wprintw(preview_win, "%.*s\n", maxx/2 - 2, next_directories[i]);
+                }
 
-	        // Get Preview of File
-	        else
-	        {
-	            getPreview(next_dir,maxy,maxx/2+2);
-	        }
-	    }
-        
+            // Get Preview of File
+            else
+            {
+                getPreview(next_dir,maxy,maxx/2+2);
+            }
+        }
+
         // Disable STANDOUT attribute if enabled
         wattroff(current_win, A_STANDOUT);
         // Draw borders and refresh windows
         refreshWindows();
-        
+
         // For fzf file search
         char cmd[250];
         char buf[250];
         FILE *fp;
 
         // For two key keybindings
-        char secondKey; 
+        char secondKey;
         // For taking user confirmation
         char confirm;
-        
+
         // Keybindings
         switch( ch = wgetch(current_win) ) {
             //Go up
@@ -857,14 +894,14 @@ int main(int argc, char* argv[])
                   {
                     if(start == 0)
                         wclear(current_win);
-                    else 
+                    else
                     {
                         start--;
                         wclear(current_win);
                     }
                   }
                 break;
-            
+
             // Go down
             case 'j':
                 selection++;
@@ -877,10 +914,10 @@ int main(int argc, char* argv[])
                     {
                     start++;
                     wclear(current_win);
-                 }   
+                 }
                 }
                 break;
-            
+
             // Go to child directory or open file
             case 'l':
                 if(len_preview != -1)
@@ -923,7 +960,7 @@ int main(int argc, char* argv[])
                 else
                     start = 0;
                 break;
-            
+
             // Go to top of current view
             case KEY_TOP:
                 selection = start;
@@ -936,7 +973,7 @@ int main(int argc, char* argv[])
                 else
                     selection = len - 1;
                 break;
-            
+
             // Go to the middle of current view
             case KEY_MID:
                 if( len >= maxy )
@@ -967,7 +1004,7 @@ int main(int argc, char* argv[])
                 clearFlag = 1;
                 searchFlag = 1;
                 break;
-            
+
             // Search in the same directory
             case KEY_SEARCHDIR:
                 if( hiddenFlag == 1 )
@@ -990,7 +1027,7 @@ int main(int argc, char* argv[])
                 clearFlag = 1;
                 searchFlag = 1;
                 break;
-            
+
             // Opens bash shell in present directory
             case KEY_SHELL:
                 sprintf(temp_dir,"cd \"%s\" && bash",dir);
@@ -1005,9 +1042,7 @@ int main(int argc, char* argv[])
             case KEY_RENAME:
                 if( access( clipboard_path, F_OK ) == -1 )
                 {
-                    strcpy(temp_dir,dir);
-                    strcat(temp_dir,"/");
-                    strcat(temp_dir,directories[selection]);
+                    sprintf(temp_dir, "%s/%s",dir,directories[selection]);
                     writeClipboard(temp_dir);
                 }
                 renameFiles();
@@ -1015,10 +1050,11 @@ int main(int argc, char* argv[])
 
             // Write to clipboard
             case KEY_SEL:
-                strcpy(temp_dir,dir);
-                strcat(temp_dir,"/");
-                strcat(temp_dir,directories[selection]);
-                writeClipboard(temp_dir);
+                sprintf(temp_dir, "%s/%s", dir, directories[selection]);
+                if (checkClipboard(temp_dir) == 1)
+                    removeClipboard(temp_dir);
+                else
+                    writeClipboard(temp_dir);
                 break;
 
             // Empty Clipboard
@@ -1038,41 +1074,41 @@ int main(int argc, char* argv[])
 
             // Moves clipboard contents to trash
             case KEY_REMOVEMENU:
-            	if( fileExists(clipboard_path) == 1 )
-            	{
-	                keys_win = create_newwin(3, maxx, maxy-3, 0);
-	                wprintw(keys_win,"Key\tCommand");
-	                wprintw(keys_win,"\n%c\tMove to Trash", KEY_TRASH);
-	                wprintw(keys_win,"\n%c\tDelete", KEY_DELETE);
-	                wrefresh(keys_win);
-	                secondKey = wgetch(current_win);
-	                delwin(keys_win);
-	                if( secondKey == KEY_TRASH )
-	                    moveFiles(trash_path);
-	                else if( secondKey == KEY_DELETE )
-	                {
-	                	wclear(status_win);
-	                	wprintw(status_win, "\nConfirm (y/n): ");
-	                	wrefresh(status_win);
-	                	confirm = wgetch(status_win);
-	                	if(confirm == 'y')
-	                		removeFiles();
-	                	else
-	                	{
-	                		wclear(status_win);
-	                		wprintw(status_win, "\nABORTED");
-	                		wrefresh(status_win);
-	                		sleep(1);
-	                	}
-	                }
-	            }
-	            else
-	            {
-	            	wclear(status_win);
-	            	wprintw(status_win,"\nSelect some files first!");
-	            	wrefresh(status_win);
-	            	sleep(1);
-	            }
+                if( fileExists(clipboard_path) == 1 )
+                {
+                    keys_win = create_newwin(3, maxx, maxy-3, 0);
+                    wprintw(keys_win,"Key\tCommand");
+                    wprintw(keys_win,"\n%c\tMove to Trash", KEY_TRASH);
+                    wprintw(keys_win,"\n%c\tDelete", KEY_DELETE);
+                    wrefresh(keys_win);
+                    secondKey = wgetch(current_win);
+                    delwin(keys_win);
+                    if( secondKey == KEY_TRASH )
+                        moveFiles(trash_path);
+                    else if( secondKey == KEY_DELETE )
+                    {
+                        wclear(status_win);
+                        wprintw(status_win, "\nConfirm (y/n): ");
+                        wrefresh(status_win);
+                        confirm = wgetch(status_win);
+                        if(confirm == 'y')
+                            removeFiles();
+                        else
+                        {
+                            wclear(status_win);
+                            wprintw(status_win, "\nABORTED");
+                            wrefresh(status_win);
+                            sleep(1);
+                        }
+                    }
+                }
+                else
+                {
+                    wclear(status_win);
+                    wprintw(status_win,"\nSelect some files first!");
+                    wrefresh(status_win);
+                    sleep(1);
+                }
                 break;
 
             // See selection list
