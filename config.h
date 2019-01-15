@@ -73,6 +73,12 @@
 // Toggle Hiddem Files
 #define KEY_TOGGLEHIDE '.'
 
+// Bookmarks Key
+#define KEY_BOOKMARK '\''
+
+// Add Bookmark Key
+#define KEY_ADDBOOKMARK 'm'
+
 // Reload
 #define KEY_RELOAD 'r'
 

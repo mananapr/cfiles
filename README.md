@@ -13,6 +13,7 @@ minimal.
 - `xdg-open` for opening programs
 - `vim` for renaming, bulk renaming and editing clipboard
 - `mediainfo` for viewing media info and file sizes
+- `sed` for removing a particular selection
 
 ## Compiling and Installation
 To compile, run
@@ -44,6 +45,8 @@ To install, simply move the generated executable to a directory that is in your 
 | <kbd>dD</kbd> | Remove selected files |
 | <kbd>i</kbd> | View mediainfo and general info |
 | <kbd>.</kbd> | Toggle hidden files |
+| <kbd>'</kbd> | View/Goto bookmarks |
+| <kbd>m</kbd> | Add bookmark |
 | <kbd>r</kbd> | Reload |
 | <kbd>q</kbd> | Quit |
 
@@ -54,6 +57,9 @@ instances can be openend and managed by any terminal multiplexer or your window 
 Note that this also means the selection list will persist even if all instances are closed.
 
 `cfiles` also uses `$HOME/.local/share/Trash/files` as the Trash Directory, so make sure this directory exists before you try to delete a file.
+
+For storing bookmarks, `cfiles` uses `$HOME/.cache/cfiles/bookmarks` file. Bookmarks are stored in the form `<key>:<path>`. You can either edit this file directly 
+or press `m` in `cfiles` to add new bookmarks.
 
 ## Why C?
 I wanted to improve my C and learn ncurses so I decided this would be an ideal project.
@@ -86,6 +92,6 @@ a similar UI.
 - [x] Fix random segfaults
 - [x] Show more info in the statusbar
 - [x] Add color support
-- [ ] Add bookmarks
+- [x] Add bookmarks
 - [ ] Add ability to run external scripts
 - [ ] Refactor Code

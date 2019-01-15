@@ -34,6 +34,9 @@ int len=0;
 // To store number of files in child directory
 int len_preview=0;
 
+// To store number of bookmarks
+int len_bookmarks=0;
+
 // Counter variable
 int i = 0;
 
@@ -64,6 +67,9 @@ char cache_path[250];
 
 // Stores the path for the clipboard file
 char clipboard_path[250];
+
+// Stores bookmarks file path
+char bookmarks_path[250];
 
 // Stores the path for the temp clipboard file
 char temp_clipboard_path[250];
@@ -132,6 +138,8 @@ void init()
 
     // Set the path for the clipboard file
     sprintf(clipboard_path,"%s/clipboard",cache_path);
+    // Set the path for the bookmarks file
+    sprintf(bookmarks_path,"%s/bookmarks",cache_path);
     // Set the path for the temp clipboard file
     sprintf(temp_clipboard_path,"%s/clipboard.tmp",cache_path);
     // Set the path for trash
@@ -154,20 +162,7 @@ void curses_init()
     init_pair(1, 2, 0);
     init_pair(2, 1, 0);
     init_pair(3, 6, 0);
-}
-
-
-/*
-    Gets the last token from temp_dir by using `tokenizer` as a delimeter
-*/
-void getLastToken(char *tokenizer)
-{
-    pch = strtok(temp_dir, tokenizer);
-    while (pch != NULL)
-    {
-        last = pch;
-        pch = strtok(NULL,tokenizer);
-    }
+    init_pair(4, 0, 0);
 }
 
 
@@ -191,6 +186,130 @@ int fileExists(char *file)
 		return 1;
 	else
 		return 0;
+}
+
+
+/*
+    Gets the last token from temp_dir by using `tokenizer` as a delimeter
+*/
+void getLastToken(char *tokenizer)
+{
+    pch = strtok(temp_dir, tokenizer);
+    while (pch != NULL)
+    {
+        last = pch;
+        pch = strtok(NULL,tokenizer);
+    }
+}
+
+
+/*
+    Get number of bookmarks
+*/
+int getNumberOfBookmarks()
+{
+    FILE *fp = fopen(bookmarks_path, "r");
+    if( fp == NULL )
+    {
+        return -1;
+    }
+    char buf[250];
+    int num = 0;
+    while(fgets(buf, 250, (FILE*) fp))
+    {
+        num++; 
+    }
+    fclose(fp);
+    return num;
+}
+
+
+/*
+    Displays the bookmarks in `keys_win`
+*/
+void displayBookmarks()
+{
+    FILE *fp = fopen(bookmarks_path, "r");
+    char buf[250];
+    wprintw(keys_win,"Key\tPath\n");
+    while(fgets(buf, 250, (FILE*) fp))
+    {
+        wprintw(keys_win, "%c", buf[0]);
+        strncpy(temp_dir, buf + 2, strlen(buf)-2);
+        strtok(temp_dir,"\n");
+        wprintw(keys_win, "\t%s\n", temp_dir);
+    }
+    fclose(fp);
+}
+
+
+/*
+    Opens the bookmark denoted by `secondKey`
+*/
+void openBookmarkDir(char secondKey)
+{
+    FILE *fp = fopen(bookmarks_path, "r");
+    char buf[250];
+    while(fgets(buf, 250, (FILE*) fp))
+    {
+        if(buf[0] == secondKey)
+        {
+            strncpy(temp_dir, buf + 2, strlen(buf)-2);
+            strtok(temp_dir,"\n");
+            if( fileExists(temp_dir) == 1 )
+                strcpy(dir, temp_dir);
+            start = 0;
+            selection = 0;
+            break;
+        }
+    }
+    fclose(fp);
+}
+
+
+/*
+    Checks if bookmark denoted with `bookmark` exists
+*/
+int bookmarkExists(char bookmark)
+{
+    FILE *fp = fopen(bookmarks_path, "r");
+    if( fp == NULL )
+    {
+        return 0;
+    }
+    char buf[250];
+    while(fgets(buf, 250, (FILE*) fp))
+    {
+        if(buf[0] == bookmark)
+        {
+            fclose(fp);
+            return 1;
+        }
+    }
+    fclose(fp);
+    return 0;
+}
+
+
+/*
+    Adds new bookmark
+*/
+void addBookmark(char bookmark, char *path)
+{
+    FILE *fp = fopen(bookmarks_path, "a+");
+    fprintf(fp,"%c:%s\n", bookmark, path);
+    fclose(fp);
+}
+
+
+/*
+    Creates a new window with dimensions `height` and `width` starting at `starty` and `startx`
+*/
+WINDOW *create_newwin(int height, int width, int starty, int startx)
+{
+    WINDOW *local_win;
+    local_win = newwin(height, width, starty, startx);
+    return local_win;
 }
 
 
@@ -482,17 +601,6 @@ void getParentPath(char *path)
 
 
 /*
-    Creates a new window with dimensions `height` and `width` starting at `starty` and `startx`
-*/
-WINDOW *create_newwin(int height, int width, int starty, int startx)
-{
-    WINDOW *local_win;
-    local_win = newwin(height, width, starty, startx);
-    return local_win;
-}
-
-
-/*
     Returns number of files in `char* directory`
 */
 int getNumberofFiles(char* directory)
@@ -706,6 +814,19 @@ void displayStatus()
     wattron(status_win, COLOR_PAIR(3));
     wprintw(status_win, "/%s", selected_file);
     wattroff(status_win, COLOR_PAIR(3));
+    wrefresh(status_win);
+}
+
+
+/*
+    Displays message on status bar
+*/
+void displayAlert(char *message)
+{
+    wclear(status_win);
+    wattron(status_win, A_BOLD);
+    wprintw(status_win, "\n%s", message);
+    wattroff(status_win, A_BOLD);
     wrefresh(status_win);
 }
 
@@ -1124,27 +1245,54 @@ int main(int argc, char* argv[])
                         moveFiles(trash_path);
                     else if( secondKey == KEY_DELETE )
                     {
-                        wclear(status_win);
-                        wprintw(status_win, "\nConfirm (y/n): ");
-                        wrefresh(status_win);
+                        displayAlert("Confirm (y/n): ");
                         confirm = wgetch(status_win);
                         if(confirm == 'y')
                             removeFiles();
                         else
                         {
-                            wclear(status_win);
-                            wprintw(status_win, "\nABORTED");
-                            wrefresh(status_win);
+                            displayAlert("ABORTED");
                             sleep(1);
                         }
                     }
                 }
                 else
                 {
-                    wclear(status_win);
-                    wprintw(status_win,"\nSelect some files first!");
-                    wrefresh(status_win);
+                    displayAlert("Select some files first!");
                     sleep(1);
+                }
+                break;
+            
+            // Go to bookmark
+            case KEY_BOOKMARK:
+                len_bookmarks = getNumberOfBookmarks();
+                if( len_bookmarks == -1 )
+                {
+                    displayAlert("No Bookmarks Found!");
+                    sleep(1);
+                }
+                else
+                {
+                    keys_win = create_newwin(len_bookmarks+1, maxx, maxy-len_bookmarks, 0);
+                    displayBookmarks();
+                    secondKey = wgetch(keys_win);
+                    openBookmarkDir(secondKey);
+                    delwin(keys_win);
+                }
+                break;
+
+            // Add Bookmark
+            case KEY_ADDBOOKMARK:
+                displayAlert("Enter Bookmark Key");
+                secondKey = wgetch(status_win); 
+                if( bookmarkExists(secondKey) == 1 )
+                {
+                    displayAlert("Bookmark Key Exists!");
+                    sleep(1);
+                }
+                else
+                {
+                    addBookmark(secondKey, dir);
                 }
                 break;
 
@@ -1159,11 +1307,7 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    wclear(status_win);
-                    wattron(status_win,A_BOLD);
-                    wprintw(status_win,"\nSelection List is Empty!");
-                    wattroff(status_win,A_BOLD);
-                    wrefresh(status_win);
+                    displayAlert("Selection List is Empty!");
                     sleep(1);
                 }
                 break;
@@ -1179,11 +1323,7 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    wclear(status_win);
-                    wattron(status_win,A_BOLD);
-                    wprintw(status_win,"\nSelection List is Empty!");
-                    wattroff(status_win,A_BOLD);
-                    wrefresh(status_win);
+                    displayAlert("Selection List is Empty!");
                     sleep(1);
                 }
                 break;
