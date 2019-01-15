@@ -37,6 +37,9 @@ int len_preview=0;
 // To store number of bookmarks
 int len_bookmarks=0;
 
+// To store number of scripts
+int len_scripts=0;
+
 // Counter variable
 int i = 0;
 
@@ -70,6 +73,9 @@ char clipboard_path[250];
 
 // Stores bookmarks file path
 char bookmarks_path[250];
+
+// Stores scripts directory path
+char scripts_path[250];
 
 // Stores the path for the temp clipboard file
 char temp_clipboard_path[250];
@@ -140,10 +146,16 @@ void init()
     sprintf(clipboard_path,"%s/clipboard",cache_path);
     // Set the path for the bookmarks file
     sprintf(bookmarks_path,"%s/bookmarks",cache_path);
+    // Set the path for the scripts directory
+    sprintf(scripts_path,"%s/scripts",cache_path);
     // Set the path for the temp clipboard file
     sprintf(temp_clipboard_path,"%s/clipboard.tmp",cache_path);
     // Set the path for trash
     sprintf(trash_path,"%s/.local/share/Trash/files",info->pw_dir);
+
+    if (stat(scripts_path, &st) == -1) {
+        mkdir(scripts_path, 0751);
+    }
 
     // Set dir as $HOME
     dir = info->pw_dir;
@@ -217,7 +229,7 @@ int getNumberOfBookmarks()
     int num = 0;
     while(fgets(buf, 250, (FILE*) fp))
     {
-        num++; 
+        num++;
     }
     fclose(fp);
     return num;
@@ -966,7 +978,7 @@ int main(int argc, char* argv[])
                 wprintw(current_win, "* %.*s\n", maxx/2, directories[i]);
             t++;
         }
-        
+
         // Store name of selected file
         strcpy(selected_file, directories[selection]);
 
@@ -1262,7 +1274,7 @@ int main(int argc, char* argv[])
                     sleep(1);
                 }
                 break;
-            
+
             // Go to bookmark
             case KEY_BOOKMARK:
                 len_bookmarks = getNumberOfBookmarks();
@@ -1284,7 +1296,7 @@ int main(int argc, char* argv[])
             // Add Bookmark
             case KEY_ADDBOOKMARK:
                 displayAlert("Enter Bookmark Key");
-                secondKey = wgetch(status_win); 
+                secondKey = wgetch(status_win);
                 if( bookmarkExists(secondKey) == 1 )
                 {
                     displayAlert("Bookmark Key Exists!");
@@ -1341,6 +1353,45 @@ int main(int argc, char* argv[])
                     hiddenFlag = 1;
                 start = 0;
                 selection = 0;
+                break;
+
+            // Run External Script
+            case KEY_SCRIPT:
+                len_scripts = getNumberofFiles(scripts_path);
+                if(len_scripts == 0)
+                {
+                    displayAlert("No scripts found!");
+                    sleep(1);
+                }
+                else
+                {
+                    char* scripts[len_scripts];
+                    getFiles(scripts_path, scripts);
+                    keys_win = create_newwin(len_scripts+1, maxx, maxy-len_scripts, 0);
+                    wprintw(keys_win,"%s\t%s\n", "S.No.", "Name");
+                    for(i=0; i<len_scripts; i++)
+                    {
+                        wprintw(keys_win, "%d\t%s\n", i+1, scripts[i]);
+                    }
+                    secondKey = wgetch(keys_win);
+                    int option = secondKey - '0';
+                    option--;
+                    if(option < len_scripts && option >= 0)
+                    {
+                        char cmd[250];
+                        char path[250];
+                        sprintf(temp_dir, "%s/%s", scripts_path, scripts[option]);
+                        sprintf(path, "%s/%s", dir, directories[selection]);
+                        sprintf(cmd, "%s %s", temp_dir, path);
+                        endwin();
+                        system(cmd);
+                        refresh();
+                    }
+                    for(i=0; i<len_scripts; i++)
+                    {
+                        free(scripts[i]);
+                    }
+                }
                 break;
 
             // Clear Preview Window

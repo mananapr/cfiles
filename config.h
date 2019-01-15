@@ -79,6 +79,9 @@
 // Add Bookmark Key
 #define KEY_ADDBOOKMARK 'm'
 
+// External Scripts Key
+#define KEY_SCRIPT 'p'
+
 // Reload
 #define KEY_RELOAD 'r'
 

@@ -47,6 +47,7 @@ To install, simply move the generated executable to a directory that is in your 
 | <kbd>.</kbd> | Toggle hidden files |
 | <kbd>'</kbd> | View/Goto bookmarks |
 | <kbd>m</kbd> | Add bookmark |
+| <kbd>p</kbd> | Run external script |
 | <kbd>r</kbd> | Reload |
 | <kbd>q</kbd> | Quit |
 
@@ -60,6 +61,8 @@ Note that this also means the selection list will persist even if all instances 
 
 For storing bookmarks, `cfiles` uses `$HOME/.cache/cfiles/bookmarks` file. Bookmarks are stored in the form `<key>:<path>`. You can either edit this file directly 
 or press `m` in `cfiles` to add new bookmarks.
+
+`cfiles` looks for external scripts in the `$HOME/.cache/cfiles/scripts` directory. Make sure the scripts are executable before moving them to the scripts directory.
 
 ## Why C?
 I wanted to improve my C and learn ncurses so I decided this would be an ideal project.
@@ -93,5 +96,5 @@ a similar UI.
 - [x] Show more info in the statusbar
 - [x] Add color support
 - [x] Add bookmarks
-- [ ] Add ability to run external scripts
+- [x] Add ability to run external scripts
 - [ ] Refactor Code
