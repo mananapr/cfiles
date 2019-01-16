@@ -59,10 +59,10 @@
 #define KEY_REMOVEMENU 'd'
 
 // For moving the file to trash after pressing KEY_REMOVEMENU
-#define KEY_TRASH 'D'
+#define KEY_TRASH 'd'
 
 // For removing the file after pressing KEY_REMOVEMENU
-#define KEY_DELETE 'd'
+#define KEY_DELETE 'D'
 
 // View file info
 #define KEY_INFO 'i'
