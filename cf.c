@@ -847,8 +847,11 @@ void displayAlert(char *message)
 */
 void refreshWindows()
 {
-    box(current_win,0,0);
-    box(preview_win,0,0);
+    if(SHOW_BORDERS == 1)
+    {
+        box(current_win,0,0);
+        box(preview_win,0,0);
+    }
     wrefresh(current_win);
     wrefresh(preview_win);
 }
@@ -1025,7 +1028,7 @@ int main(int argc, char* argv[])
                         wattroff(preview_win, A_BOLD);
                         wattroff(preview_win, COLOR_PAIR(1));
                     }
-                    wprintw(preview_win, "%.*s\n", maxx/2 - 2, next_directories[i]);
+                    wprintw(preview_win, "%.*s\n", maxx/2 - 3, next_directories[i]);
                 }
 
             // Get Preview of File
