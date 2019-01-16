@@ -14,6 +14,7 @@ minimal.
 - `vim` for renaming, bulk renaming and editing clipboard
 - `mediainfo` for viewing media info and file sizes
 - `sed` for removing a particular selection
+- `atool` for archive previews
 
 ## Compiling and Installation
 To compile, run

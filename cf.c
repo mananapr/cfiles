@@ -557,6 +557,19 @@ void getVidPreview(char *filepath, int maxy, int maxx)
 
 
 /*
+    Gets previews of archives
+*/
+void getArchivePreview(char *filepath, int maxy, int maxx)
+{
+    char buf[250];
+    sprintf(temp_dir,"atool -lq \"%s\" > ~/.cache/cfiles/preview",filepath);
+    system(temp_dir);
+    sprintf(temp_dir,"%s/preview",cache_path);
+    getTextPreview(temp_dir, maxy, maxx);
+}
+
+
+/*
     Gets previews of video files (Dummy)
 */
 void getDummyVidPreview(char *filepath, int maxy, int maxx)
@@ -583,13 +596,15 @@ void getFileType(char *filepath)
 void getPreview(char *filepath, int maxy, int maxx)
 {
     getFileType(filepath);
-    if(strcasecmp("jpg",last) == 0 || strcasecmp("png",last) == 0 || strcasecmp("mp3",last) == 0)
+    if(strcasecmp("jpg",last) == 0 || strcasecmp("png",last) == 0 || strcasecmp("gif",last) == 0 || strcasecmp("jpeg",last) == 0 || strcasecmp("mp3",last) == 0)
     {
         getImgPreview(filepath, maxy, maxx);
         clearFlag = 1;
     }
-    else if(strcasecmp("mp4",last) == 0 || strcasecmp("mkv",last) == 0 || strcasecmp("avi",last) == 0)
+    else if(strcasecmp("mp4",last) == 0 || strcasecmp("mkv",last) == 0 || strcasecmp("avi",last) == 0 || strcasecmp("webm",last) == 0)
         getDummyVidPreview(filepath, maxy, maxx);
+    else if(strcasecmp("zip",last) == 0 || strcasecmp("rar",last) == 0 || strcasecmp("cbr",last) == 0 || strcasecmp("cbz",last) == 0)
+        getArchivePreview(filepath, maxy, maxx);
     else
         getTextPreview(filepath, maxy, maxx);
 }
