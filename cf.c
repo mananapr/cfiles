@@ -49,6 +49,9 @@ char* dir;
 // Name of selected file
 char selected_file[128];
 
+// Name of the editor
+char editor[20];
+
 // char array to work with strtok() and for other one time use
 char temp_dir[250];
 
@@ -134,6 +137,12 @@ void init()
     uid_t uid = getuid();
     // Get home directory of user from UID
     info = getpwuid(uid);
+
+    // Set the editor
+    if( getenv("EDITOR") == NULL)
+        sprintf(editor, "%s", "vim");
+    else
+        sprintf(editor, "%s", getenv("EDITOR"));
 
     // Make the cache directory
     struct stat st = {0};
@@ -377,7 +386,7 @@ void openFile(char *filepath)
     if(strcmp(mime,"text") == 0)
     {
         char cmd[250];
-        sprintf(cmd,"vim %s",filepath);
+        sprintf(cmd,"%s %s",editor, filepath);
         endwin();
         system(cmd);
         return;
@@ -757,9 +766,9 @@ void renameFiles()
     // Make `temp_clipboard`
     sprintf(cmd,"cp %s %s",clipboard_path,temp_clipboard_path);
     system(cmd);
-    // Exit curses mode and open temp_clipboard_path in vim
+    // Exit curses mode and open temp_clipboard_path in EDITOR
     endwin();
-    sprintf(cmd,"vim %s",temp_clipboard_path);
+    sprintf(cmd,"%s %s", editor, temp_clipboard_path);
     system(cmd);
 
     // Open clipboard and temp_clipboard and mv path from clipboard to adjacent entry in temp_clipboard
@@ -1346,7 +1355,7 @@ int main(int argc, char* argv[])
             case KEY_EDITSEL:
                 if( fileExists(clipboard_path) == 1 )
                 {
-                    sprintf(temp_dir,"vim %s",clipboard_path);
+                    sprintf(temp_dir,"%s %s", editor, clipboard_path);
                     endwin();
                     system(temp_dir);
                     refresh();
