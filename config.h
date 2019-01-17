@@ -11,6 +11,17 @@
 // Set to 0 if you want to disable borders
 #define SHOW_BORDERS 1
 
+/*
+    Color Settings
+*/
+
+// Shell Color Number to use for directories
+#define DIR_COLOR 2
+// Shell Color Number to use for file count which is displayed in the statusbar
+#define STATUS_FILECOUNT_COLOR 1
+// Shell Color Number to use for selected file which is displayed in the statusbar
+#define STATUS_SELECTED_COLOR 6
+
 
 /*
     Change your keybindings in this section    

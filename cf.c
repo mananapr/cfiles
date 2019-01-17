@@ -1,11 +1,11 @@
 /*
-           __ _ _
-      ___ / _(_) | ___  ___
-     / __| |_| | |/ _ \/ __|
-    | (__|  _| | |  __/\__ \
-     \___|_| |_|_|\___||___/
+   __ _ _
+   ___ / _(_) | ___  ___
+   / __| |_| | |/ _ \/ __|
+   | (__|  _| | |  __/\__ \
+   \___|_| |_|_|\___||___/
 
-*/
+ */
 
 
 /////////////
@@ -59,10 +59,10 @@ char *pch;
 struct passwd *info;
 
 /*
-    Base directory to be used for sorting
-    `dir` for current_win
-    `next_dir` for preview_win
-*/
+   Base directory to be used for sorting
+   `dir` for current_win
+   `next_dir` for preview_win
+ */
 char sort_dir[250];
 
 // Stores the path for the cache directory
@@ -125,9 +125,9 @@ int startx, starty, maxx, maxy;
 //////////////////////
 
 /*
-    Initializes the program
-    Sets the relevant file paths
-*/
+   Initializes the program
+   Sets the relevant file paths
+ */
 void init()
 {
     // Get UID of user
@@ -163,24 +163,24 @@ void init()
 
 
 /*
-    Initializes ncurses
-*/
+   Initializes ncurses
+ */
 void curses_init()
 {
     initscr();
     noecho();
     curs_set(0);
     start_color();
-    init_pair(1, 2, 0);
-    init_pair(2, 1, 0);
-    init_pair(3, 6, 0);
+    init_pair(1, DIR_COLOR, 0);
+    init_pair(2, STATUS_FILECOUNT_COLOR, 0);
+    init_pair(3, STATUS_SELECTED_COLOR, 0);
     init_pair(4, 0, 0);
 }
 
 
 /*
-    Checks if `path` is a file or directory
-*/
+   Checks if `path` is a file or directory
+ */
 int is_regular_file(const char *path)
 {
     struct stat path_stat;
@@ -190,20 +190,20 @@ int is_regular_file(const char *path)
 
 
 /*
-    Checks if a file exists or not
-*/
+   Checks if a file exists or not
+ */
 int fileExists(char *file)
 {
-	if( access( file, F_OK ) != -1 )
-		return 1;
-	else
-		return 0;
+    if( access( file, F_OK ) != -1 )
+        return 1;
+    else
+        return 0;
 }
 
 
 /*
-    Gets the last token from temp_dir by using `tokenizer` as a delimeter
-*/
+   Gets the last token from temp_dir by using `tokenizer` as a delimeter
+ */
 void getLastToken(char *tokenizer)
 {
     pch = strtok(temp_dir, tokenizer);
@@ -216,8 +216,8 @@ void getLastToken(char *tokenizer)
 
 
 /*
-    Get number of bookmarks
-*/
+   Get number of bookmarks
+ */
 int getNumberOfBookmarks()
 {
     FILE *fp = fopen(bookmarks_path, "r");
@@ -237,8 +237,8 @@ int getNumberOfBookmarks()
 
 
 /*
-    Displays the bookmarks in `keys_win`
-*/
+   Displays the bookmarks in `keys_win`
+ */
 void displayBookmarks()
 {
     FILE *fp = fopen(bookmarks_path, "r");
@@ -256,8 +256,8 @@ void displayBookmarks()
 
 
 /*
-    Opens the bookmark denoted by `secondKey`
-*/
+   Opens the bookmark denoted by `secondKey`
+ */
 void openBookmarkDir(char secondKey)
 {
     FILE *fp = fopen(bookmarks_path, "r");
@@ -280,8 +280,8 @@ void openBookmarkDir(char secondKey)
 
 
 /*
-    Checks if bookmark denoted with `bookmark` exists
-*/
+   Checks if bookmark denoted with `bookmark` exists
+ */
 int bookmarkExists(char bookmark)
 {
     FILE *fp = fopen(bookmarks_path, "r");
@@ -304,8 +304,8 @@ int bookmarkExists(char bookmark)
 
 
 /*
-    Adds new bookmark
-*/
+   Adds new bookmark
+ */
 void addBookmark(char bookmark, char *path)
 {
     FILE *fp = fopen(bookmarks_path, "a+");
@@ -315,8 +315,8 @@ void addBookmark(char bookmark, char *path)
 
 
 /*
-    Creates a new window with dimensions `height` and `width` starting at `starty` and `startx`
-*/
+   Creates a new window with dimensions `height` and `width` starting at `starty` and `startx`
+ */
 WINDOW *create_newwin(int height, int width, int starty, int startx)
 {
     WINDOW *local_win;
@@ -326,8 +326,8 @@ WINDOW *create_newwin(int height, int width, int starty, int startx)
 
 
 /*
-    For qsort
-*/
+   For qsort
+ */
 int compare (const void * a, const void * b )
 {
     // They store the full paths of the arguments
@@ -348,8 +348,8 @@ int compare (const void * a, const void * b )
 
 
 /*
-    Gets file MIME
-*/
+   Gets file MIME
+ */
 void getMIME(char *filepath, char mime[10])
 {
     char cmd[250];
@@ -368,8 +368,8 @@ void getMIME(char *filepath, char mime[10])
 
 
 /*
-    Opens a file using xdg-open
-*/
+   Opens a file using xdg-open
+ */
 void openFile(char *filepath)
 {
     char mime[10];
@@ -393,8 +393,8 @@ void openFile(char *filepath)
 
 
 /*
-    Checks if path is in clipboard
-*/
+   Checks if path is in clipboard
+ */
 int checkClipboard(char *filepath)
 {
     FILE *f = fopen(clipboard_path, "r");
@@ -418,8 +418,8 @@ int checkClipboard(char *filepath)
 
 
 /*
-    Writes to clipboard
-*/
+   Writes to clipboard
+ */
 void writeClipboard(char *filepath)
 {
     FILE *f = fopen(clipboard_path,"a+");
@@ -435,8 +435,8 @@ void writeClipboard(char *filepath)
 
 
 /*
-    Removes entry from clipboard
-*/
+   Removes entry from clipboard
+ */
 void removeClipboard(char *filepath)
 {
     char cmd[250];
@@ -447,8 +447,8 @@ void removeClipboard(char *filepath)
 
 
 /*
-    Empties Clipboard
-*/
+   Empties Clipboard
+ */
 void emptyClipboard()
 {
     if( remove(clipboard_path) == -1)
@@ -459,8 +459,8 @@ void emptyClipboard()
 
 
 /*
-    Gets previews of images
-*/
+   Gets previews of images
+ */
 void getImgPreview(char *filepath, int maxy, int maxx)
 {
     pid_t pid;
@@ -489,7 +489,7 @@ void getImgPreview(char *filepath, int maxy, int maxx)
         // Get Dimensions from `buf` and store them `width` and `height`
         sscanf(buf,"%d %d", &width, &height);
 
-       // Set appropriate maxx and maxy so that image displays within the preview_win
+        // Set appropriate maxx and maxy so that image displays within the preview_win
         maxx = maxx * 5;
         maxy = maxy * 5;
 
@@ -514,8 +514,8 @@ void getImgPreview(char *filepath, int maxy, int maxx)
 
 
 /*
-    Gets previews of text in files
-*/
+   Gets previews of text in files
+ */
 void getTextPreview(char *filepath, int maxy, int maxx)
 {
     // Don't Generate Preview if file size > 50MB
@@ -541,8 +541,8 @@ void getTextPreview(char *filepath, int maxy, int maxx)
 
 
 /*
-    Gets previews of video files
-*/
+   Gets previews of video files
+ */
 void getVidPreview(char *filepath, int maxy, int maxx)
 {
     char buf[250];
@@ -557,8 +557,8 @@ void getVidPreview(char *filepath, int maxy, int maxx)
 
 
 /*
-    Gets previews of archives
-*/
+   Gets previews of archives
+ */
 void getArchivePreview(char *filepath, int maxy, int maxx)
 {
     char buf[250];
@@ -570,8 +570,8 @@ void getArchivePreview(char *filepath, int maxy, int maxx)
 
 
 /*
-    Gets previews of video files (Dummy)
-*/
+   Gets previews of video files (Dummy)
+ */
 void getDummyVidPreview(char *filepath, int maxy, int maxx)
 {
     wmove(preview_win,1,2);
@@ -581,8 +581,8 @@ void getDummyVidPreview(char *filepath, int maxy, int maxx)
 
 
 /*
-    Sets `temp_dir` to filepath and then stores the extension in `last`
-*/
+   Sets `temp_dir` to filepath and then stores the extension in `last`
+ */
 void getFileType(char *filepath)
 {
     strcpy(temp_dir, filepath);
@@ -591,8 +591,8 @@ void getFileType(char *filepath)
 
 
 /*
-    Checks `last` for extension and then calls the appropriate preview function
-*/
+   Checks `last` for extension and then calls the appropriate preview function
+ */
 void getPreview(char *filepath, int maxy, int maxx)
 {
     getFileType(filepath);
@@ -611,8 +611,8 @@ void getPreview(char *filepath, int maxy, int maxx)
 
 
 /*
-    Gets path of parent directory
-*/
+   Gets path of parent directory
+ */
 void getParentPath(char *path)
 {
     char *p;
@@ -628,8 +628,8 @@ void getParentPath(char *path)
 
 
 /*
-    Returns number of files in `char* directory`
-*/
+   Returns number of files in `char* directory`
+ */
 int getNumberofFiles(char* directory)
 {
     int len=0;
@@ -657,8 +657,8 @@ int getNumberofFiles(char* directory)
 
 
 /*
-    Stores all the file names in `char* directory` to `char *target[]`
-*/
+   Stores all the file names in `char* directory` to `char *target[]`
+ */
 int getFiles(char* directory, char* target[])
 {
     int i = 0;
@@ -674,10 +674,10 @@ int getFiles(char* directory, char* target[])
         // Skip . and ..
         if( strcmp(pDirent->d_name,".") != 0 && strcmp(pDirent->d_name,"..") != 0 )
         {
-          if( pDirent->d_name[0] == '.' )
-            if( hiddenFlag == 0 )
-              continue;
-          target[i++] = strdup(pDirent->d_name);
+            if( pDirent->d_name[0] == '.' )
+                if( hiddenFlag == 0 )
+                    continue;
+            target[i++] = strdup(pDirent->d_name);
         }
     }
 
@@ -687,8 +687,8 @@ int getFiles(char* directory, char* target[])
 
 
 /*
-    Copy files in clipboard to `present_dir`
-*/
+   Copy files in clipboard to `present_dir`
+ */
 void copyFiles(char *present_dir)
 {
     FILE *f = fopen(clipboard_path, "r");
@@ -711,8 +711,8 @@ void copyFiles(char *present_dir)
 }
 
 /*
-    Removes files in clipboard
-*/
+   Removes files in clipboard
+ */
 void removeFiles()
 {
     FILE *f = fopen(clipboard_path, "r");
@@ -735,8 +735,8 @@ void removeFiles()
 
 
 /*
-    Rename files in clipboard
-*/
+   Rename files in clipboard
+ */
 void renameFiles()
 {
     // For opening clipboard and temp_clipboard
@@ -793,8 +793,8 @@ void renameFiles()
 
 
 /*
-    Move files in clipboard to `present_dir`
-*/
+   Move files in clipboard to `present_dir`
+ */
 void moveFiles(char *present_dir)
 {
     FILE *f = fopen(clipboard_path, "r");
@@ -818,8 +818,8 @@ void moveFiles(char *present_dir)
 
 
 /*
-    Creates current_win, preview_win and status_win
-*/
+   Creates current_win, preview_win and status_win
+ */
 void init_windows()
 {
     current_win = create_newwin(maxy, maxx/2+3, 0, 0);
@@ -829,8 +829,8 @@ void init_windows()
 
 
 /*
-    Displays current status in the status bar
-*/
+   Displays current status in the status bar
+ */
 void displayStatus()
 {
     wmove(status_win,1,1);
@@ -846,8 +846,8 @@ void displayStatus()
 
 
 /*
-    Displays message on status bar
-*/
+   Displays message on status bar
+ */
 void displayAlert(char *message)
 {
     wclear(status_win);
@@ -859,7 +859,7 @@ void displayAlert(char *message)
 
 
 /*
-*/
+ */
 void refreshWindows()
 {
     if(SHOW_BORDERS == 1)
@@ -874,7 +874,7 @@ void refreshWindows()
 
 /*
    Checks if some flags are enabled and handles them accordingly
-*/
+ */
 void handleFlags(char** directories)
 {
     // Clear the preview_win
@@ -932,7 +932,7 @@ void handleFlags(char** directories)
 
 int main(int argc, char* argv[])
 {
-	// Initialization
+    // Initialization
     init();
     curses_init();
 
@@ -1078,35 +1078,35 @@ int main(int argc, char* argv[])
                 selection = ( selection < 0 ) ? 0 : selection;
                 // Scrolling
                 if(len >= maxy)
-                  if(selection <= start + maxy/2)
-                  {
-                    if(start == 0)
-                        wclear(current_win);
-                    else
+                    if(selection <= start + maxy/2)
                     {
-                        start--;
-                        wclear(current_win);
+                        if(start == 0)
+                            wclear(current_win);
+                        else
+                        {
+                            start--;
+                            wclear(current_win);
+                        }
                     }
-                  }
                 break;
 
-            // Go down
+                // Go down
             case 'j':
                 selection++;
                 selection = ( selection > len-1 ) ? len-1 : selection;
                 // Scrolling
                 if(len >= maxy)
-                  if(selection - 1 > maxy/2)
-                  {
-                    if(start + maxy - 2 != len)
+                    if(selection - 1 > maxy/2)
                     {
-                    start++;
-                    wclear(current_win);
-                 }
-                }
+                        if(start + maxy - 2 != len)
+                        {
+                            start++;
+                            wclear(current_win);
+                        }
+                    }
                 break;
 
-            // Go to child directory or open file
+                // Go to child directory or open file
             case 'l':
                 if(len_preview != -1)
                 {
@@ -1122,7 +1122,7 @@ int main(int argc, char* argv[])
                 }
                 break;
 
-            // Go up a directory
+                // Go up a directory
             case 'h':
                 // Copy present directory to temp_dir to work with strtok()
                 strcpy(temp_dir, dir);
@@ -1134,13 +1134,13 @@ int main(int argc, char* argv[])
                 getLastToken("/");
                 break;
 
-            // Goto start
+                // Goto start
             case KEY_START:
                 selection = 0;
                 start = 0;
                 break;
 
-            // Goto end
+                // Goto end
             case KEY_GOEND:
                 selection = len - 1;
                 if(len > maxy - 2)
@@ -1149,12 +1149,12 @@ int main(int argc, char* argv[])
                     start = 0;
                 break;
 
-            // Go to top of current view
+                // Go to top of current view
             case KEY_TOP:
                 selection = start;
                 break;
 
-            // Go to the bottom of current view
+                // Go to the bottom of current view
             case KEY_BOTTOM:
                 if(len >= maxy)
                     selection = start + maxy - 3;
@@ -1162,7 +1162,7 @@ int main(int argc, char* argv[])
                     selection = len - 1;
                 break;
 
-            // Go to the middle of current view
+                // Go to the middle of current view
             case KEY_MID:
                 if( len >= maxy )
                     selection = start + maxy/2;
@@ -1170,7 +1170,7 @@ int main(int argc, char* argv[])
                     selection = (len / 2) - 1;
                 break;
 
-            // Search using fzf
+                // Search using fzf
             case KEY_SEARCHALL:
                 sprintf(temp_dir,"cd %s && fzf",info->pw_dir);
                 endwin();
@@ -1193,7 +1193,7 @@ int main(int argc, char* argv[])
                 searchFlag = 1;
                 break;
 
-            // Search in the same directory
+                // Search in the same directory
             case KEY_SEARCHDIR:
                 if( hiddenFlag == 1 )
                     sprintf(cmd,"cd %s && ls -a | fzf",dir);
@@ -1216,7 +1216,7 @@ int main(int argc, char* argv[])
                 searchFlag = 1;
                 break;
 
-            // Opens bash shell in present directory
+                // Opens bash shell in present directory
             case KEY_SHELL:
                 sprintf(temp_dir,"cd \"%s\" && bash",dir);
                 endwin();
@@ -1226,7 +1226,7 @@ int main(int argc, char* argv[])
                 refresh();
                 break;
 
-            // Bulk Rename
+                // Bulk Rename
             case KEY_RENAME:
                 if( access( clipboard_path, F_OK ) == -1 )
                 {
@@ -1236,7 +1236,7 @@ int main(int argc, char* argv[])
                 renameFiles();
                 break;
 
-            // Write to clipboard
+                // Write to clipboard
             case KEY_SEL:
                 sprintf(temp_dir, "%s/%s", dir, directories[selection]);
                 if (checkClipboard(temp_dir) == 1)
@@ -1245,22 +1245,22 @@ int main(int argc, char* argv[])
                     writeClipboard(temp_dir);
                 break;
 
-            // Empty Clipboard
+                // Empty Clipboard
             case KEY_EMPTYSEL:
                 emptyClipboard();
                 break;
 
-            // Copy clipboard contents to present directory
+                // Copy clipboard contents to present directory
             case KEY_YANK:
                 copyFiles(dir);
                 break;
 
-            // Moves clipboard contents to present directory
+                // Moves clipboard contents to present directory
             case KEY_MV:
                 moveFiles(dir);
                 break;
 
-            // Moves clipboard contents to trash
+                // Moves clipboard contents to trash
             case KEY_REMOVEMENU:
                 if( fileExists(clipboard_path) == 1 )
                 {
@@ -1293,7 +1293,7 @@ int main(int argc, char* argv[])
                 }
                 break;
 
-            // Go to bookmark
+                // Go to bookmark
             case KEY_BOOKMARK:
                 len_bookmarks = getNumberOfBookmarks();
                 if( len_bookmarks == -1 )
@@ -1311,7 +1311,7 @@ int main(int argc, char* argv[])
                 }
                 break;
 
-            // Add Bookmark
+                // Add Bookmark
             case KEY_ADDBOOKMARK:
                 displayAlert("Enter Bookmark Key");
                 secondKey = wgetch(status_win);
@@ -1326,7 +1326,7 @@ int main(int argc, char* argv[])
                 }
                 break;
 
-            // See selection list
+                // See selection list
             case KEY_VIEWSEL:
                 if( access( clipboard_path, F_OK ) != -1 )
                 {
@@ -1342,7 +1342,7 @@ int main(int argc, char* argv[])
                 }
                 break;
 
-            // Edit selection list
+                // Edit selection list
             case KEY_EDITSEL:
                 if( fileExists(clipboard_path) == 1 )
                 {
@@ -1358,12 +1358,12 @@ int main(int argc, char* argv[])
                 }
                 break;
 
-            // View Preview
+                // View Preview
             case KEY_INFO:
                 getVidPreview(next_dir,maxy,maxx/2+2);
                 break;
 
-            // Enable/Disable hidden files
+                // Enable/Disable hidden files
             case KEY_TOGGLEHIDE:
                 if( hiddenFlag == 1 )
                     hiddenFlag = 0;
@@ -1373,7 +1373,7 @@ int main(int argc, char* argv[])
                 selection = 0;
                 break;
 
-            // Run External Script
+                // Run External Script
             case KEY_SCRIPT:
                 len_scripts = getNumberofFiles(scripts_path);
                 if(len_scripts == 0)
@@ -1412,7 +1412,7 @@ int main(int argc, char* argv[])
                 }
                 break;
 
-            // Clear Preview Window
+                // Clear Preview Window
             case KEY_RELOAD:
                 clearFlag = 1;
                 break;
