@@ -487,8 +487,17 @@ void getImgPreview(char *filepath, int maxy, int maxx)
         char imgdisplay_command[PATH_MAX];
 
         // Run the displayimg script with appropriate arguments
-        snprintf(imgdisplay_command, PATH_MAX, "%s %d %d %d %d %s",DISPLAYIMG,maxx,2,maxx-6,maxy,filepath);
-        system(imgdisplay_command);
+        //snprintf(imgdisplay_command, PATH_MAX, "%s %d %d %d %d %s",DISPLAYIMG,maxx,2,maxx-6,maxy,filepath);
+        //system(imgdisplay_command);
+        char arg1[5];
+        char arg2[5];
+        char arg3[5];
+        char arg4[5];
+        snprintf(arg1,5,"%d",maxx);
+        snprintf(arg2,5,"%d",2);
+        snprintf(arg3,5,"%d",maxx-6);
+        snprintf(arg4,5,"%d",maxy);
+        execl(DISPLAYIMG,DISPLAYIMG,arg1,arg2,arg3,arg4,filepath,(char *)NULL);
         exit(1);
     }
 }
@@ -869,8 +878,23 @@ void handleFlags(char** directories)
     // Clear the preview_win for images
     if(clearFlagImg == 1)
     {
-        sprintf(temp_dir,"%s %d %d %d %d", CLEARIMG, maxx/2+2, 2, maxx/2-3, maxy+5);
-        system(temp_dir);
+        char arg1[5];
+        char arg2[5];
+        char arg3[5];
+        char arg4[5];
+        snprintf(arg1,5,"%d",maxx/2+2);
+        snprintf(arg2,5,"%d",2);
+        snprintf(arg3,5,"%d",maxx/2-3);
+        snprintf(arg4,5,"%d",maxy+5);
+
+        pid_t pid;
+        pid = fork();
+
+        if(pid == 0)
+        {
+            execl(CLEARIMG,CLEARIMG,arg1,arg2,arg3,arg4,(char *)NULL);
+            exit(1);
+        }
         clearFlagImg = 0;
     }
 
