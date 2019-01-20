@@ -483,42 +483,10 @@ void getImgPreview(char *filepath, int maxy, int maxx)
 
     if (pid == 0)
     {
-        // Stores shell command for getting image dimensions through w3mimgdisplay
-        char getdimensions_command[250];
-        // Stores shell command for displaying image through w3mimgdisplay
+        // Stores shell command for displaying image through displayimg script
         char imgdisplay_command[250];
-        //int width;
-        //int height;
 
-        //// Get dimensions of image and store it as a string in `buf`
-        //sprintf(getdimensions_command,"echo -e \'5;%s' | %s",filepath, W3MIMGDISPLAY_PATH);
-        //if((fp = popen(getdimensions_command,"r")) == NULL)
-        //{
-        //    exit(0);
-        //}
-        //while(fgets(buf,64,fp) != NULL){}
-
-        //// Get Dimensions from `buf` and store them `width` and `height`
-        //sscanf(buf,"%d %d", &width, &height);
-
-        //// Set appropriate maxx and maxy so that image displays within the preview_win
-        //maxx = maxx * 5;
-        //maxy = maxy * 5;
-
-        //// Scale the image if dimensions are bigger than preview_win
-        //if(width > maxx)
-        //{
-        //    height = height * maxx/width;
-        //    width = maxx;
-        //}
-        //if(height > maxy)
-        //{
-        //    width = width * maxy/height;
-        //    height = maxy;
-        //}
-
-        // Run the w3mimgdisplay command  with appropriate arguments
-        //sprintf(imgdisplay_command,"echo -e '0;1;%d;%d;%d;%d;;;;;%s\n4;\n3;' | %s",maxx+maxx/5,8,width,height,filepath,W3MIMGDISPLAY_PATH);
+        // Run the displayimg script with appropriate arguments
         sprintf(imgdisplay_command,"%s %d %d %d %d %s",DISPLAYIMG,maxx,2,maxx-6,maxy,filepath);
         system(imgdisplay_command);
         exit(1);
