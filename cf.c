@@ -44,17 +44,26 @@ int len_scripts=0;
 // Counter variable
 int i = 0;
 
-// Direcotry to be opened
-char* dir;
+// Stores allocation size for dynamic arrays
+int allocSize;
 
 // Name of selected file
 char selected_file[NAME_MAX];
 
+// Direcotry to be opened
+char* dir;
+
+// Stores files in the selected directory
+char *next_dir;
+
+// Stores path of parent directory
+char *prev_dir;
+
 // Name of the editor
-char editor[20];
+char *editor;
 
 // char array to work with strtok() and for other one time use
-char temp_dir[PATH_MAX];
+char *temp_dir;
 
 // To work with strtok()
 char *pch;
@@ -67,25 +76,25 @@ struct passwd *info;
    `dir` for current_win
    `next_dir` for preview_win
  */
-char sort_dir[PATH_MAX];
+char *sort_dir;
 
 // Stores the path for the cache directory
-char cache_path[PATH_MAX];
+char *cache_path;
 
 // Stores the path for the clipboard file
-char clipboard_path[PATH_MAX];
+char *clipboard_path;
 
 // Stores bookmarks file path
-char bookmarks_path[PATH_MAX];
+char *bookmarks_path;
 
 // Stores scripts directory path
-char scripts_path[PATH_MAX];
+char *scripts_path;
 
 // Stores the path for the temp clipboard file
-char temp_clipboard_path[PATH_MAX];
+char *temp_clipboard_path;
 
 // Stores the path for trash
-char trash_path[PATH_MAX];
+char *trash_path;
 
 // Index of currently selected item in `char* directories`
 int selection = 0;
@@ -144,34 +153,59 @@ void init()
 
     // Set the editor
     if( getenv("EDITOR") == NULL)
-        snprintf(editor, 20, "%s", "vim");
+    {
+        editor = malloc(4);
+        snprintf(editor, 4, "%s", "vim");
+    }
     else
-        snprintf(editor, 20, "%s", getenv("EDITOR"));
+    {
+        allocSize = snprintf(NULL, 0, "%s", getenv("EDITOR"));
+        editor = malloc(allocSize + 1);
+        snprintf(editor, allocSize+1, "%s", getenv("EDITOR"));
+    }
 
     // Make the cache directory
     struct stat st = {0};
-    sprintf(cache_path,"%s/.cache/cfiles",info->pw_dir);
+    allocSize = snprintf(NULL,0,"%s/.cache/cfiles",info->pw_dir);
+    cache_path = malloc(allocSize+1);
+    snprintf(cache_path,allocSize+1,"%s/.cache/cfiles",info->pw_dir);
     if (stat(cache_path, &st) == -1) {
         mkdir(cache_path, 0751);
     }
 
     // Set the path for the clipboard file
-    snprintf(clipboard_path,PATH_MAX,"%s/clipboard",cache_path);
+    allocSize = snprintf(NULL,0,"%s/clipboard",cache_path);
+    clipboard_path = malloc(allocSize+1);
+    snprintf(clipboard_path,allocSize+1,"%s/clipboard",cache_path);
+
     // Set the path for the bookmarks file
-    snprintf(bookmarks_path,PATH_MAX,"%s/bookmarks",cache_path);
+    allocSize = snprintf(NULL,0,"%s/bookmarks",cache_path);
+    bookmarks_path = malloc(allocSize+1);
+    snprintf(bookmarks_path,allocSize+1,"%s/bookmarks",cache_path);
+
     // Set the path for the scripts directory
-    snprintf(scripts_path,PATH_MAX,"%s/scripts",cache_path);
+    allocSize = snprintf(NULL,0,"%s/scripts",cache_path);
+    scripts_path = malloc(allocSize+1);
+    snprintf(scripts_path,allocSize+1,"%s/scripts",cache_path);
+
     // Set the path for the temp clipboard file
-    snprintf(temp_clipboard_path,PATH_MAX,"%s/clipboard.tmp",cache_path);
+    allocSize = snprintf(NULL,0,"%s/clipboard.tmp",cache_path);
+    temp_clipboard_path = malloc(allocSize+1);
+    snprintf(temp_clipboard_path,allocSize+1,"%s/clipboard.tmp",cache_path);
+
     // Set the path for trash
-    snprintf(trash_path,PATH_MAX,"%s/.local/share/Trash/files",info->pw_dir);
+    allocSize = snprintf(NULL,0,"%s/.local/share/Trash/files",info->pw_dir);
+    trash_path = malloc(allocSize+1);
+    snprintf(trash_path,allocSize+1,"%s/.local/share/Trash/files",info->pw_dir);
 
     if (stat(scripts_path, &st) == -1) {
         mkdir(scripts_path, 0751);
     }
 
     // Set dir as $HOME
-    dir = info->pw_dir;
+    allocSize = snprintf(NULL,0,"%s",info->pw_dir);
+    dir = malloc(allocSize+1);
+    snprintf(dir,allocSize+1,"%s",info->pw_dir);
 }
 
 
@@ -187,7 +221,6 @@ void curses_init()
     init_pair(1, DIR_COLOR, 0);
     init_pair(2, STATUS_FILECOUNT_COLOR, 0);
     init_pair(3, STATUS_SELECTED_COLOR, 0);
-    init_pair(4, 0, 0);
 }
 
 
@@ -238,12 +271,14 @@ int getNumberOfBookmarks()
     {
         return -1;
     }
-    char buf[PATH_MAX];
+    char *buf;
+    buf = malloc(PATH_MAX);
     int num = 0;
     while(fgets(buf, PATH_MAX, (FILE*) fp))
     {
         num++;
     }
+    free(buf);
     fclose(fp);
     return num;
 }
@@ -255,15 +290,23 @@ int getNumberOfBookmarks()
 void displayBookmarks()
 {
     FILE *fp = fopen(bookmarks_path, "r");
-    char buf[250];
+    char *buf;
+    buf = malloc(PATH_MAX);
     wprintw(keys_win,"Key\tPath\n");
-    while(fgets(buf, 250, (FILE*) fp))
+    while(fgets(buf, PATH_MAX, (FILE*) fp))
     {
         wprintw(keys_win, "%c", buf[0]);
+
+        // Reallocate `tempdir`
+        free(temp_dir);
+        allocSize = snprintf(NULL,0,"%s",buf);
+        temp_dir = malloc(allocSize+1);
+
         strncpy(temp_dir, buf + 2, strlen(buf)-2);
         strtok(temp_dir,"\n");
         wprintw(keys_win, "\t%s\n", temp_dir);
     }
+    free(buf);
     fclose(fp);
 }
 
@@ -274,20 +317,32 @@ void displayBookmarks()
 void openBookmarkDir(char secondKey)
 {
     FILE *fp = fopen(bookmarks_path, "r");
-    char buf[250];
-    while(fgets(buf, 250, (FILE*) fp))
+    char *buf;
+    buf = malloc(PATH_MAX);
+    while(fgets(buf, PATH_MAX, (FILE*) fp))
     {
         if(buf[0] == secondKey)
         {
+            // Reallocate `temp_dir`
+            free(temp_dir);
+            allocSize = snprintf(NULL,0,"%s",buf);
+            temp_dir = malloc(allocSize+1);
             strncpy(temp_dir, buf + 2, strlen(buf)-2);
             strtok(temp_dir,"\n");
             if( fileExists(temp_dir) == 1 )
-                strcpy(dir, temp_dir);
+            {
+                // Reallocate `dir`
+                free(dir);
+                allocSize = snprintf(NULL,0,"%s",temp_dir);
+                dir = malloc(allocSize+1);
+                snprintf(dir,allocSize+1,"%s",temp_dir);
+            }
             start = 0;
             selection = 0;
             break;
         }
     }
+    free(buf);
     fclose(fp);
 }
 
@@ -302,7 +357,8 @@ int bookmarkExists(char bookmark)
     {
         return 0;
     }
-    char buf[PATH_MAX];
+    char *buf;
+    buf = malloc(PATH_MAX);
     while(fgets(buf, PATH_MAX, (FILE*) fp))
     {
         if(buf[0] == bookmark)
@@ -311,6 +367,7 @@ int bookmarkExists(char bookmark)
             return 1;
         }
     }
+    free(buf);
     fclose(fp);
     return 0;
 }
@@ -344,39 +401,60 @@ WINDOW *create_newwin(int height, int width, int starty, int startx)
 int compare (const void * a, const void * b )
 {
     // They store the full paths of the arguments
-    char temp_filepath1[PATH_MAX];
-    char temp_filepath2[PATH_MAX];
+    char *temp_filepath1;
+    char *temp_filepath2;
 
-    // Generate full paths
+    // Allocate Memory and Generate full paths
+    allocSize = snprintf(NULL,0,"%s/%s", sort_dir, *(char **)a);
+    temp_filepath1 = malloc(allocSize+1);
     snprintf(temp_filepath1,PATH_MAX,"%s/%s", sort_dir, *(char **)a);
+    allocSize = snprintf(NULL,0,"%s/%s", sort_dir, *(char **)b);
+    temp_filepath2 = malloc(allocSize+1);
     snprintf(temp_filepath2,PATH_MAX,"%s/%s", sort_dir, *(char **)b);
 
     if(is_regular_file(temp_filepath1) == 0 && is_regular_file(temp_filepath2) == 1)
+    {
+        free(temp_filepath1);
+        free(temp_filepath2);
         return -1;
+    }
     else if(is_regular_file(temp_filepath1) == 1 && is_regular_file(temp_filepath2) == 0)
+    {
+        free(temp_filepath1);
+        free(temp_filepath2);
         return 1;
+    }
     else
+    {
+        free(temp_filepath1);
+        free(temp_filepath2);
         return strcasecmp(*(char **)a, *(char **)b);
+    }
 }
 
 
 /*
    Gets file MIME
- */
-void getMIME(char *filepath, char mime[10])
+*/
+void getMIME(char *filepath, char mime[50])
 {
-    char cmd[250];
-    char buf[20];
+    char buf[50];
+    char *cmd;
     FILE *fp;
-    sprintf(cmd, "xdg-mime query filetype %s", filepath);
+
+    // Allocate Memory to `cmd`
+    allocSize = snprintf(NULL, 0, "xdg-mime query filetype %s", filepath);
+    cmd = malloc(allocSize+1);
+    snprintf(cmd, allocSize+1, "xdg-mime query filetype %s", filepath);
 
     if((fp = popen(cmd,"r")) == NULL)
     {
         exit(0);
     }
-    while(fgets(buf,20,fp) != NULL){}
+    while(fgets(buf,50,fp) != NULL){}
     strtok(buf,"/");
-    strncpy(mime,buf,20);
+    snprintf(mime,50,"%s",buf);
+    free(cmd);
 }
 
 
@@ -385,14 +463,18 @@ void getMIME(char *filepath, char mime[10])
  */
 void openFile(char *filepath)
 {
-    char mime[20];
+    char mime[50];
     getMIME(filepath, mime);
     if(strcmp(mime,"text") == 0)
     {
-        char cmd[PATH_MAX];
-        snprintf(cmd, PATH_MAX, "%s %s",editor, filepath);
+        char *cmd;
+        // Allocate Memory to `cmd`
+        allocSize = snprintf(NULL, 0, "%s %s", editor, filepath);
+        cmd = malloc(allocSize+1);
+        snprintf(cmd, allocSize+1, "%s %s", editor, filepath);
         endwin();
         system(cmd);
+        free(cmd);
         return;
     }
     pid_t pid;
@@ -412,8 +494,11 @@ int checkClipboard(char *filepath)
 {
     FILE *f = fopen(clipboard_path, "r");
     char buf[PATH_MAX];
-    char temp[PATH_MAX];
-    snprintf(temp,PATH_MAX,"%s", filepath);
+    char *temp;
+    // Allocate Memory to `temp`
+    allocSize = snprintf(NULL,0,"%s", filepath);
+    temp = malloc(allocSize+1);
+    snprintf(temp, allocSize+1, "%s", filepath);
     temp[strlen(temp)]='\0';
     if(f == NULL)
     {
@@ -423,9 +508,13 @@ int checkClipboard(char *filepath)
     {
         buf[strlen(buf)-1] = '\0';
         if(strcmp(temp,buf) == 0)
+        {
+            free(temp);
             return 1;
+        }
     }
     fclose(f);
+    free(temp);
     return 0;
 }
 
@@ -452,10 +541,14 @@ void writeClipboard(char *filepath)
  */
 void removeClipboard(char *filepath)
 {
-    char cmd[PATH_MAX];
+    char *cmd;
     filepath[strlen(filepath)-1] = '\0';
+    // Allocate Memory to `cmd`
+    allocSize = snprintf(NULL, 0, "sed -i '\\|^%s|d' %s", filepath, clipboard_path);
+    cmd = malloc(allocSize+1);
     snprintf(cmd, PATH_MAX, "sed -i '\\|^%s|d' %s", filepath, clipboard_path);
     system(cmd);
+    free(cmd);
 }
 
 
@@ -483,20 +576,17 @@ void getImgPreview(char *filepath, int maxy, int maxx)
 
     if (pid == 0)
     {
-        // Stores shell command for displaying image through displayimg script
-        char imgdisplay_command[PATH_MAX];
-
-        // Run the displayimg script with appropriate arguments
-        //snprintf(imgdisplay_command, PATH_MAX, "%s %d %d %d %d %s",DISPLAYIMG,maxx,2,maxx-6,maxy,filepath);
-        //system(imgdisplay_command);
+        // For storing arguments to the DISPLAYIMG script
         char arg1[5];
         char arg2[5];
         char arg3[5];
         char arg4[5];
+        // Convert numerical arguments to string
         snprintf(arg1,5,"%d",maxx);
         snprintf(arg2,5,"%d",2);
         snprintf(arg3,5,"%d",maxx-6);
         snprintf(arg4,5,"%d",maxy);
+        // Run the displayimg script with appropriate arguments
         execl(DISPLAYIMG,DISPLAYIMG,arg1,arg2,arg3,arg4,filepath,(char *)NULL);
         exit(1);
     }
@@ -535,13 +625,33 @@ void getTextPreview(char *filepath, int maxy, int maxx)
  */
 void getVidPreview(char *filepath, int maxy, int maxx)
 {
-    char buf[PATH_MAX];
-    snprintf(temp_dir,PATH_MAX,"mediainfo \"%s\" > ~/.cache/cfiles/preview",filepath);
+    char *buf;
+
+    // Reallocate `temp_dir` and store `mediainfo` command
+    free(temp_dir);
+    allocSize = snprintf(NULL,0,"mediainfo \"%s\" > ~/.cache/cfiles/preview",filepath);
+    temp_dir = malloc(allocSize+1);
+    snprintf(temp_dir,allocSize+1,"mediainfo \"%s\" > ~/.cache/cfiles/preview",filepath);
+
+    // Execute the mediainfo command
     endwin();
     system(temp_dir);
-    sprintf(temp_dir,"%s/preview",cache_path);
-    sprintf(buf, "less %s", temp_dir);
+
+    // Reallocate `temp_dir` and store path to preview file
+    free(temp_dir);
+    allocSize = snprintf(NULL,0,"%s/preview",cache_path);
+    temp_dir = malloc(allocSize+1);
+    snprintf(temp_dir,allocSize+1,"%s/preview",cache_path);
+
+    // Allocate Memory to `buf` and store command to display preview file
+    allocSize = snprintf(NULL, 0, "less %s", temp_dir);
+    buf = malloc(allocSize+1);
+    snprintf(buf, allocSize+1, "less %s", temp_dir);
+
+    // Execute the preview command and Free Memory
     system(buf);
+    free(buf);
+
     refresh();
 }
 
@@ -551,10 +661,20 @@ void getVidPreview(char *filepath, int maxy, int maxx)
  */
 void getArchivePreview(char *filepath, int maxy, int maxx)
 {
-    char buf[PATH_MAX];
-    snprintf(temp_dir, PATH_MAX, "atool -lq \"%s\" > ~/.cache/cfiles/preview",filepath);
+    // Reallocate `temp_dir`
+    free(temp_dir);
+    allocSize = snprintf(NULL,0,"atool -lq \"%s\" > ~/.cache/cfiles/preview", filepath);
+    temp_dir = malloc(allocSize+1);
+    snprintf(temp_dir, allocSize+1, "atool -lq \"%s\" > ~/.cache/cfiles/preview",filepath);
+
+    // Execute comand and Free Memory
     system(temp_dir);
-    snprintf(temp_dir,PATH_MAX,"%s/preview",cache_path);
+    free(temp_dir);
+
+    // Reallocate `temp_dir`
+    allocSize = snprintf(NULL,0,"%s/preview",cache_path);
+    temp_dir = malloc(allocSize+1);
+    snprintf(temp_dir,allocSize+1,"%s/preview",cache_path);
     getTextPreview(temp_dir, maxy, maxx);
 }
 
@@ -575,7 +695,10 @@ void getDummyVidPreview(char *filepath, int maxy, int maxx)
  */
 void getFileType(char *filepath)
 {
-    strcpy(temp_dir, filepath);
+    free(temp_dir);
+    allocSize = snprintf(NULL,0,"%s",filepath);
+    temp_dir = malloc(allocSize+1);
+    snprintf(temp_dir,allocSize+1,"%s", filepath);
     getLastToken(".");
 }
 
@@ -693,7 +816,12 @@ void copyFiles(char *present_dir)
     while(fgets(buf, PATH_MAX, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
-        snprintf(temp_dir,PATH_MAX,"cp -r -v \"%s\" \"%s\"",buf,present_dir);
+        // Reallocate `temp_dir` and store command for copying file
+        free(temp_dir);
+        allocSize = snprintf(NULL,0,"cp -r -v \"%s\" \"%s\"",buf,present_dir);
+        temp_dir = malloc(allocSize+1);
+        snprintf(temp_dir,allocSize+1,"cp -r -v \"%s\" \"%s\"",buf,present_dir);
+        // Execute command
         system(temp_dir);
     }
     refresh();
@@ -715,7 +843,12 @@ void removeFiles()
     while(fgets(buf, PATH_MAX, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
-        sprintf(temp_dir,"rm -r -v \"%s\"",buf);
+        // Reallocate `temp_dir` and store command for removing file
+        free(temp_dir);
+        allocSize = snprintf(NULL,0,"rm -r -v \"%s\"",buf);
+        temp_dir = malloc(allocSize+1);
+        snprintf(temp_dir,allocSize+1,"rm -r -v \"%s\"",buf);
+        // Execute command
         system(temp_dir);
     }
     refresh();
@@ -734,7 +867,7 @@ void renameFiles()
     FILE *f2;
 
     // For storing shell commands
-    char cmd[PATH_MAX];
+    char *cmd;
 
     // Buffers for reading clipboard and temp_clipboard
     char buf[PATH_MAX];
@@ -744,13 +877,23 @@ void renameFiles()
     int count = 0;
     int count2 = 0;
 
+    // Allocate Memory tp `cmd`
+    allocSize = snprintf(NULL,0,"cp %s %s",clipboard_path,temp_clipboard_path);
+    cmd = malloc(allocSize+1);
+    snprintf(cmd,allocSize+1,"cp %s %s",clipboard_path,temp_clipboard_path);
     // Make `temp_clipboard`
-    snprintf(cmd,PATH_MAX,"cp %s %s",clipboard_path,temp_clipboard_path);
     system(cmd);
+
     // Exit curses mode and open temp_clipboard_path in EDITOR
     endwin();
-    snprintf(cmd,PATH_MAX,"%s %s", editor, temp_clipboard_path);
+
+    // Reallocate `cmd`
+    free(cmd);
+    allocSize = snprintf(NULL,0,"%s %s", editor, temp_clipboard_path);
+    cmd = malloc(allocSize + 1);
+    snprintf(cmd,allocSize+1,"%s %s", editor, temp_clipboard_path);
     system(cmd);
+    free(cmd);
 
     // Open clipboard and temp_clipboard and mv path from clipboard to adjacent entry in temp_clipboard
     while(fgets(buf, PATH_MAX, (FILE*) f))
@@ -766,17 +909,27 @@ void renameFiles()
             {
                 if(buf2[strlen(buf2)-1] == '\n')
                     buf2[strlen(buf2)-1] = '\0';
-                snprintf(cmd,PATH_MAX,"mv \"%s\" \"%s\"",buf,buf2);
+
+                // Reallocate `cmd`
+                allocSize = snprintf(NULL,0,"mv \"%s\" \"%s\"",buf,buf2);
+                cmd = malloc(allocSize+1);
+                snprintf(cmd,allocSize+1,"mv \"%s\" \"%s\"",buf,buf2);
                 system(cmd);
+                free(cmd);
             }
         }
         count++;
         fclose(f2);
     }
     fclose(f);
+
     // Remove clipboard and temp_clipboard
-    snprintf(cmd,PATH_MAX,"rm %s %s",temp_clipboard_path,clipboard_path);
+    allocSize = snprintf(NULL,0,"rm %s %s",temp_clipboard_path,clipboard_path);
+    cmd = malloc(allocSize+1);
+    snprintf(cmd,allocSize+1,"rm %s %s",temp_clipboard_path,clipboard_path);
     system(cmd);
+    free(cmd);
+
     // Start curses mode
     refresh();
 }
@@ -798,7 +951,14 @@ void moveFiles(char *present_dir)
     while(fgets(buf, PATH_MAX, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
-        snprintf(temp_dir, PATH_MAX, "mv -f \"%s\" \"%s\"",buf,present_dir);
+
+        // Reallocate `temp_dir` and store command for moving file
+        free(temp_dir);
+        allocSize = snprintf(NULL, 0, "mv -f \"%s\" \"%s\"",buf,present_dir);
+        temp_dir = malloc(allocSize+1);
+        snprintf(temp_dir, allocSize+1, "mv -f \"%s\" \"%s\"",buf,present_dir);
+
+        // Execute command
         system(temp_dir);
     }
     fclose(f);
@@ -812,7 +972,7 @@ void moveFiles(char *present_dir)
  */
 void init_windows()
 {
-    current_win = create_newwin(maxy, maxx/2+3, 0, 0);
+    current_win = create_newwin(maxy, maxx/2+2, 0, 0);
     preview_win = create_newwin(maxy, maxx/2 -1, 0, maxx/2 + 1);
     status_win = create_newwin(2, maxx, maxy, 0);
 }
@@ -878,10 +1038,13 @@ void handleFlags(char** directories)
     // Clear the preview_win for images
     if(clearFlagImg == 1)
     {
+        // Store arguments for CLEARIMG script
         char arg1[5];
         char arg2[5];
         char arg3[5];
         char arg4[5];
+
+        // Convert numerical arguments to strings
         snprintf(arg1,5,"%d",maxx/2+2);
         snprintf(arg2,5,"%d",2);
         snprintf(arg3,5,"%d",maxx/2-3);
@@ -960,10 +1123,15 @@ int main(int argc, char* argv[])
 
         // Array of all the files in the current directory
         char* directories[len];
+
+        // Store files in `dir` in the `directories` array
         int status;
         status = getFiles(dir, directories);
+
         // Sort files by name
-        strcpy(sort_dir,dir);
+        allocSize = snprintf(NULL,0,"%s",dir);
+        sort_dir = malloc(allocSize+1);
+        strncpy(sort_dir,dir,allocSize+1);
         qsort(directories, len, sizeof (char*), compare);
 
         // In case the last file is selected and it get's removed or moved
@@ -987,7 +1155,9 @@ int main(int argc, char* argv[])
         int t = 0;
         for( i=start; i<len; i++ )
         {
-            snprintf(temp_dir,PATH_MAX,"%s/%s",dir,directories[i]);
+            allocSize = snprintf(NULL,0,"%s/%s",dir,directories[i]);
+            temp_dir = malloc(allocSize + 1);
+            snprintf(temp_dir,allocSize+1,"%s/%s",dir,directories[i]);
             if(i==selection)
                 wattron(current_win, A_STANDOUT);
             else
@@ -1004,29 +1174,29 @@ int main(int argc, char* argv[])
             }
             wmove(current_win,t+1,2);
             if( checkClipboard(temp_dir) == 0)
-                wprintw(current_win, "%.*s\n", maxx/2+2, directories[i]);
+                wprintw(current_win, "%.*s\n", maxx/2+1, directories[i]);
             else
-                wprintw(current_win, "* %.*s\n", maxx/2, directories[i]);
+                wprintw(current_win, "* %.*s\n", maxx/2-1, directories[i]);
             t++;
         }
 
         // Store name of selected file
-        strncpy(selected_file, directories[selection], NAME_MAX);
+        snprintf(selected_file,NAME_MAX,"%s",directories[selection]);
 
         // Display Status
         displayStatus();
 
-        // Stores files in the selected directory
-        char next_dir[PATH_MAX] = "";
-        // Stores path of parent directory
-        char prev_dir[PATH_MAX] = "";
-
         // Get path of parent directory
-        snprintf(prev_dir,PATH_MAX,"%s",dir);
+        allocSize = snprintf(NULL,0,"%s",dir);
+        prev_dir = malloc(allocSize+1);
+        snprintf(prev_dir,allocSize+1,"%s",dir);
         getParentPath(prev_dir);
 
         // Get path of child directory
-        snprintf(next_dir,PATH_MAX,"%s/%s", dir, directories[selection]);
+        allocSize = snprintf(NULL,0,"%s/%s", dir, directories[selection]);
+        next_dir = malloc(allocSize+1);
+        snprintf(next_dir,allocSize+1,"%s/%s", dir, directories[selection]);
+
         // Stores number of files in the child directory
         len_preview = getNumberofFiles(next_dir);
         // Stores files in the child directory
@@ -1034,9 +1204,15 @@ int main(int argc, char* argv[])
         status = getFiles(next_dir, next_directories);
 
         // Selection is a directory
-        strncpy(sort_dir,next_dir,PATH_MAX);
+        free(sort_dir);
         if(len_preview > 0)
+        {
+            allocSize = snprintf(NULL,0,"%s",next_dir);
+            sort_dir = malloc(allocSize+1);
+            snprintf(sort_dir,allocSize+1,"%s",next_dir);
             qsort(next_directories, len_preview, sizeof (char*), compare);
+            free(sort_dir);
+        }
 
         // Selection is not a directory
         if(len != 0)
@@ -1045,7 +1221,11 @@ int main(int argc, char* argv[])
                 for( i=0; i<len_preview; i++ )
                 {
                     wmove(preview_win,i+1,2);
-                    snprintf(temp_dir, PATH_MAX, "%s/%s", next_dir, next_directories[i]);
+                    // Allocate `temp_dir` and store path of file in `next_dir`
+                    free(temp_dir);
+                    allocSize = snprintf(NULL,0,"%s/%s", next_dir, next_directories[i]);
+                    temp_dir = malloc(allocSize+1);
+                    snprintf(temp_dir, allocSize+1, "%s/%s", next_dir, next_directories[i]);
                     if( is_regular_file(temp_dir) == 0 )
                     {
                         wattron(preview_win, A_BOLD);
@@ -1066,18 +1246,20 @@ int main(int argc, char* argv[])
             }
         }
 
-        // Disable STANDOUT attribute if enabled
+        // Disable STANDOUT and colors attributes if enabled
         wattroff(current_win, A_STANDOUT);
         wattroff(current_win, COLOR_PAIR(1));
         wattroff(preview_win, COLOR_PAIR(1));
+
         // Draw borders and refresh windows
         refreshWindows();
 
-        // For fzf file search
-        char cmd[PATH_MAX];
-        char buf[PATH_MAX];
+        // For fzf
+        char *cmd;
+        char *buf;
+        char *path;
+        // For popen
         FILE *fp;
-
         // For two key keybindings
         char secondKey;
         // For taking user confirmation
@@ -1085,7 +1267,7 @@ int main(int argc, char* argv[])
 
         // Keybindings
         switch( ch = wgetch(current_win) ) {
-            //Go up
+            // Go up
             case 'k':
                 selection--;
                 selection = ( selection < 0 ) ? 0 : selection;
@@ -1103,7 +1285,7 @@ int main(int argc, char* argv[])
                     }
                 break;
 
-                // Go down
+            // Go down
             case 'j':
                 selection++;
                 selection = ( selection > len-1 ) ? len-1 : selection;
@@ -1119,11 +1301,14 @@ int main(int argc, char* argv[])
                     }
                 break;
 
-                // Go to child directory or open file
+            // Go to child directory or open file
             case 'l':
                 if(len_preview != -1)
                 {
-                    strcpy(dir, next_dir);
+                    free(dir);
+                    allocSize = snprintf(NULL,0,"%s",next_dir);
+                    dir = malloc(allocSize+1);
+                    snprintf(dir,allocSize+1,"%s",next_dir);
                     selection = 0;
                     start = 0;
                 }
@@ -1135,25 +1320,36 @@ int main(int argc, char* argv[])
                 }
                 break;
 
-                // Go up a directory
+            // Go up a directory
             case 'h':
-                // Copy present directory to temp_dir to work with strtok()
-                strcpy(temp_dir, dir);
-                strcpy(dir, prev_dir);
+                // Reallocate `temp_dir` and Copy present directory to temp_dir to work with strtok()
+                free(temp_dir);
+                allocSize = snprintf(NULL,0,"%s",dir);
+                temp_dir = malloc(allocSize+1);
+                snprintf(temp_dir,allocSize+1,"%s",dir);
+
+                // Reallocate `dir` and copy `prev_dir` to `dir`
+                free(dir);
+                allocSize = snprintf(NULL,0,"%s",prev_dir);
+                dir = malloc(allocSize+1);
+                snprintf(dir,allocSize+1,"%s",prev_dir);
+
+                // Set appropriate flags
                 selection = 0;
                 start = 0;
                 backFlag = 1;
+
                 // Get the last token in `temp_dir` and store it in `last`
                 getLastToken("/");
                 break;
 
-                // Goto start
+            // Goto start
             case KEY_START:
                 selection = 0;
                 start = 0;
                 break;
 
-                // Goto end
+            // Goto end
             case KEY_GOEND:
                 selection = len - 1;
                 if(len > maxy - 2)
@@ -1162,12 +1358,12 @@ int main(int argc, char* argv[])
                     start = 0;
                 break;
 
-                // Go to top of current view
+            // Go to top of current view
             case KEY_TOP:
                 selection = start;
                 break;
 
-                // Go to the bottom of current view
+            // Go to the bottom of current view
             case KEY_BOTTOM:
                 if(len >= maxy)
                     selection = start + maxy - 3;
@@ -1175,7 +1371,7 @@ int main(int argc, char* argv[])
                     selection = len - 1;
                 break;
 
-                // Go to the middle of current view
+            // Go to the middle of current view
             case KEY_MID:
                 if( len >= maxy )
                     selection = start + maxy/2;
@@ -1183,55 +1379,115 @@ int main(int argc, char* argv[])
                     selection = (len / 2) - 1;
                 break;
 
-                // Search using fzf
+            // Search using fzf
             case KEY_SEARCHALL:
-                snprintf(temp_dir,PATH_MAX,"cd %s && fzf",info->pw_dir);
+                // Reallocate `temp_dir` to store fzf command
+                free(temp_dir);
+                allocSize = snprintf(NULL,0,"cd \"%s\" && fzf", dir);
+                temp_dir = malloc(allocSize+1);
+                snprintf(temp_dir,allocSize+1,"cd \"%s\" && fzf",dir);
+
+                // Execute fzf command and store output in buf
                 endwin();
+                buf = malloc(PATH_MAX);
                 if((fp = popen(temp_dir,"r")) == NULL)
                 {
                     exit(0);
                 }
                 while(fgets(buf,PATH_MAX,fp) != NULL){}
-                char path[PATH_MAX];
-                snprintf(path, PATH_MAX, "%s/%s",info->pw_dir,buf);
+
+                // Allocate Memory to `path`
+                allocSize = snprintf(NULL, 0, "%s/%s",dir,buf);
+                path = malloc(allocSize+1);
+                snprintf(path, allocSize+1, "%s/%s",dir,buf);
+
                 // Copy `path` into `temp_dir` to work with strtok.
                 //Then fetch the last token from `temp_dir` and store it in `last`.
-                strncpy(temp_dir,path,PATH_MAX);
+                free(temp_dir);
+                allocSize = snprintf(NULL,0,"%s", path);
+                temp_dir = malloc(allocSize+1);
+                snprintf(temp_dir,allocSize+1,"%s",path);
                 getLastToken("/");
                 getParentPath(path);
-                strcpy(dir,path);
+                free(dir);
+                allocSize = snprintf(NULL,0,"%s", path);
+                dir = malloc(allocSize+1);
+                snprintf(dir,allocSize+1,"%s", path);
+
+                // Set appropriate flags
                 selection = 0;
                 start = 0;
                 clearFlag = 1;
                 searchFlag = 1;
+
+                // Free Memory
+                free(buf);
+                free(path);
                 break;
 
-                // Search in the same directory
+            // Search in the same directory
             case KEY_SEARCHDIR:
+                // Allocate Memory to `cmd`
                 if( hiddenFlag == 1 )
-                    snprintf(cmd,PATH_MAX,"cd %s && ls -a | fzf",dir);
+                {
+                    allocSize = snprintf(NULL,0,"cd \"%s\" && ls -a | fzf",dir);
+                    cmd = malloc(allocSize+1);
+                    snprintf(cmd,allocSize+1,"cd \"%s\" && ls -a | fzf",dir);
+                }
                 else
-                    snprintf(cmd,PATH_MAX,"cd %s && ls | fzf",dir);
+                {
+                    allocSize = snprintf(NULL,0,"cd \"%s\" && ls | fzf",dir);
+                    cmd = malloc(allocSize+1);
+                    snprintf(cmd,PATH_MAX,"cd \"%s\" && ls | fzf",dir);
+                }
                 endwin();
+
+                // Allocate Memory to `buf` to store output of `cmd` command
+                buf = malloc(PATH_MAX);
                 if((fp = popen(cmd,"r")) == NULL)
                 {
                     exit(0);
                 }
                 while(fgets(buf,PATH_MAX,fp) != NULL){}
-                snprintf(path,PATH_MAX, "%s/%s",info->pw_dir,buf);
-                strncpy(temp_dir,path,PATH_MAX);
+
+                // Allocate Memory to `path` to store path selected file
+                allocSize = snprintf(NULL,0,"%s/%s",dir,buf);
+                path = malloc(allocSize+1);
+                snprintf(path,allocSize+1,"%s/%s",dir,buf);
+
+                // Reallocate `temp_dir`
+                free(temp_dir);
+                allocSize = snprintf(NULL,0,"%s",path);
+                temp_dir = malloc(allocSize+1);
+                snprintf(temp_dir,allocSize+1,"%s",path);
                 getLastToken("/");
                 getParentPath(path);
-                strcpy(dir,path);
+
+                // Reallocate `dir` to store directory where the selected file is
+                free(dir);
+                allocSize = snprintf(NULL,0,"%s",path);
+                dir = malloc(allocSize+1);
+                snprintf(dir,allocSize+1,"%s",path);
+
+                // Free Memory
+                free(buf);
+                free(path);
+                free(cmd);
+
+                // Set appropriate flags
                 selection = 0;
                 start = 0;
                 clearFlag = 1;
                 searchFlag = 1;
                 break;
 
-                // Opens bash shell in present directory
+            // Opens bash shell in present directory
             case KEY_SHELL:
-                snprintf(temp_dir,PATH_MAX,"cd \"%s\" && bash",dir);
+                // Reallocate `temp_dir`
+                free(temp_dir);
+                allocSize = snprintf(NULL,0,"cd \"%s\" && bash",dir);
+                temp_dir = malloc(allocSize+1);
+                snprintf(temp_dir,allocSize+1,"cd \"%s\" && bash",dir);
                 endwin();
                 system(temp_dir);
                 start = 0;
@@ -1239,41 +1495,49 @@ int main(int argc, char* argv[])
                 refresh();
                 break;
 
-                // Bulk Rename
+            // Bulk Rename
             case KEY_RENAME:
                 if( access( clipboard_path, F_OK ) == -1 )
                 {
-                    snprintf(temp_dir,PATH_MAX,"%s/%s",dir,directories[selection]);
+                    // Reallocate `temp_dir` to store full path of selected file
+                    free(temp_dir);
+                    allocSize = snprintf(NULL,0,"%s/%s",dir,directories[selection]);
+                    temp_dir = malloc(allocSize+1);
+                    snprintf(temp_dir,allocSize+1,"%s/%s",dir,directories[selection]);
                     writeClipboard(temp_dir);
                 }
                 renameFiles();
                 break;
 
-                // Write to clipboard
+            // Write to clipboard
             case KEY_SEL:
-                snprintf(temp_dir, PATH_MAX, "%s/%s", dir, directories[selection]);
+                // Reallocate `temp_dir` to store full path of selection
+                free(temp_dir);
+                allocSize = snprintf(NULL,0,"%s/%s",dir,directories[selection]);
+                temp_dir = malloc(allocSize+1);
+                snprintf(temp_dir, allocSize+1, "%s/%s", dir, directories[selection]);
                 if (checkClipboard(temp_dir) == 1)
                     removeClipboard(temp_dir);
                 else
                     writeClipboard(temp_dir);
                 break;
 
-                // Empty Clipboard
+            // Empty Clipboard
             case KEY_EMPTYSEL:
                 emptyClipboard();
                 break;
 
-                // Copy clipboard contents to present directory
+            // Copy clipboard contents to present directory
             case KEY_YANK:
                 copyFiles(dir);
                 break;
 
-                // Moves clipboard contents to present directory
+            // Moves clipboard contents to present directory
             case KEY_MV:
                 moveFiles(dir);
                 break;
 
-                // Moves clipboard contents to trash
+            // Moves clipboard contents to trash
             case KEY_REMOVEMENU:
                 if( fileExists(clipboard_path) == 1 )
                 {
@@ -1306,7 +1570,7 @@ int main(int argc, char* argv[])
                 }
                 break;
 
-                // Go to bookmark
+            // Go to bookmark
             case KEY_BOOKMARK:
                 len_bookmarks = getNumberOfBookmarks();
                 if( len_bookmarks == -1 )
@@ -1324,7 +1588,7 @@ int main(int argc, char* argv[])
                 }
                 break;
 
-                // Add Bookmark
+            // Add Bookmark
             case KEY_ADDBOOKMARK:
                 displayAlert("Enter Bookmark Key");
                 secondKey = wgetch(status_win);
@@ -1339,11 +1603,15 @@ int main(int argc, char* argv[])
                 }
                 break;
 
-                // See selection list
+            // See selection list
             case KEY_VIEWSEL:
                 if( access( clipboard_path, F_OK ) != -1 )
                 {
-                    snprintf(temp_dir,PATH_MAX,"less %s",clipboard_path);
+                    // Reallocate `temp_dir` to command to view clipboard
+                    free(temp_dir);
+                    allocSize = snprintf(NULL,0,"less %s",clipboard_path);
+                    temp_dir = malloc(allocSize+1);
+                    snprintf(temp_dir,allocSize+1,"less %s",clipboard_path);
                     endwin();
                     system(temp_dir);
                     refresh();
@@ -1355,11 +1623,15 @@ int main(int argc, char* argv[])
                 }
                 break;
 
-                // Edit selection list
+            // Edit selection list
             case KEY_EDITSEL:
                 if( fileExists(clipboard_path) == 1 )
                 {
-                    snprintf(temp_dir,PATH_MAX,"%s %s", editor, clipboard_path);
+                    // Reallocate `temp_dir` to command to edit clipboard
+                    free(temp_dir);
+                    allocSize = snprintf(NULL,0,"%s %s", editor, clipboard_path);
+                    temp_dir = malloc(allocSize+1);
+                    snprintf(temp_dir,allocSize+1,"%s %s", editor, clipboard_path);
                     endwin();
                     system(temp_dir);
                     refresh();
@@ -1371,12 +1643,12 @@ int main(int argc, char* argv[])
                 }
                 break;
 
-                // View Preview
+            // View Preview
             case KEY_INFO:
                 getVidPreview(next_dir,maxy,maxx/2+2);
                 break;
 
-                // Enable/Disable hidden files
+            // Enable/Disable hidden files
             case KEY_TOGGLEHIDE:
                 if( hiddenFlag == 1 )
                     hiddenFlag = 0;
@@ -1386,7 +1658,7 @@ int main(int argc, char* argv[])
                 selection = 0;
                 break;
 
-                // Run External Script
+            // Run External Script
             case KEY_SCRIPT:
                 len_scripts = getNumberofFiles(scripts_path);
                 if(len_scripts == 0)
@@ -1409,11 +1681,29 @@ int main(int argc, char* argv[])
                     option--;
                     if(option < len_scripts && option >= 0)
                     {
-                        snprintf(temp_dir, PATH_MAX, "%s/%s", scripts_path, scripts[option]);
-                        snprintf(buf, PATH_MAX, "%s/%s", dir, directories[selection]);
-                        snprintf(cmd, PATH_MAX, "%s %s", temp_dir, buf);
+                        // Reallocate `temp_dir` to store path of script
+                        free(temp_dir);
+                        allocSize = snprintf(NULL, 0, "%s/%s", scripts_path, scripts[option]);
+                        temp_dir = malloc(allocSize+1);
+                        snprintf(temp_dir, allocSize+1, "%s/%s", scripts_path, scripts[option]);
+
+                        // Allocate Memory to `buf` to store path of selection
+                        allocSize = snprintf(NULL, 0, "%s/%s", dir, directories[selection]);
+                        buf = malloc(allocSize+1);
+                        snprintf(buf, allocSize+1, "%s/%s", dir, directories[selection]);
+
+                        // Allocate Memory to `cmd` to store the command to execute script with `buf` as argument
+                        allocSize = snprintf(NULL, 0, "%s %s", temp_dir, buf);
+                        cmd = malloc(allocSize+1);
+                        snprintf(cmd, allocSize+1, "%s %s", temp_dir, buf);
+
+                        // Exit ncurses mode and execute the script
                         endwin();
                         system(cmd);
+
+                        // Free Memory
+                        free(cmd);
+                        free(buf);
                         refresh();
                     }
                     for(i=0; i<len_scripts; i++)
@@ -1430,6 +1720,8 @@ int main(int argc, char* argv[])
         }
 
         // Free Memory
+        free(next_dir);
+        free(prev_dir);
         for( i=0; i<len_preview; i++ )
         {
             free(next_directories[i]);
@@ -1440,6 +1732,17 @@ int main(int argc, char* argv[])
         }
 
     } while( ch != 'q');
+
+    // Free Memory
+    free(cache_path);
+    free(temp_clipboard_path);
+    free(clipboard_path);
+    free(bookmarks_path);
+    free(scripts_path);
+    free(trash_path);
+    free(editor);
+    free(dir);
+    free(temp_dir);
 
     // End curses mode
     endwin();
