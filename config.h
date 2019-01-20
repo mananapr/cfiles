@@ -11,6 +11,11 @@
 // Set to 0 if you want to disable borders
 #define SHOW_BORDERS 1
 
+// Display Image Script
+#define DISPLAYIMG "/home/manan/Scripts/displayimg"
+// Clear Image Preview Script
+#define CLEARIMG "/home/manan/Scripts/clearimg"
+
 /*
     Color Settings
 */

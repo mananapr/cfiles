@@ -95,6 +95,9 @@ int start = 0;
 // Flag to clear preview_win
 int clearFlag = 0;
 
+// Flag to clear preview_win for images
+int clearFlagImg = 0;
+
 // Flag is set to 1 when returning from `fzf`
 int searchFlag = 0;
 
@@ -484,38 +487,39 @@ void getImgPreview(char *filepath, int maxy, int maxx)
         char getdimensions_command[250];
         // Stores shell command for displaying image through w3mimgdisplay
         char imgdisplay_command[250];
-        int width;
-        int height;
+        //int width;
+        //int height;
 
-        // Get dimensions of image and store it as a string in `buf`
-        sprintf(getdimensions_command,"echo -e \'5;%s' | /usr/lib/w3m/w3mimgdisplay",filepath);
-        if((fp = popen(getdimensions_command,"r")) == NULL)
-        {
-            exit(0);
-        }
-        while(fgets(buf,64,fp) != NULL){}
+        //// Get dimensions of image and store it as a string in `buf`
+        //sprintf(getdimensions_command,"echo -e \'5;%s' | %s",filepath, W3MIMGDISPLAY_PATH);
+        //if((fp = popen(getdimensions_command,"r")) == NULL)
+        //{
+        //    exit(0);
+        //}
+        //while(fgets(buf,64,fp) != NULL){}
 
-        // Get Dimensions from `buf` and store them `width` and `height`
-        sscanf(buf,"%d %d", &width, &height);
+        //// Get Dimensions from `buf` and store them `width` and `height`
+        //sscanf(buf,"%d %d", &width, &height);
 
-        // Set appropriate maxx and maxy so that image displays within the preview_win
-        maxx = maxx * 5;
-        maxy = maxy * 5;
+        //// Set appropriate maxx and maxy so that image displays within the preview_win
+        //maxx = maxx * 5;
+        //maxy = maxy * 5;
 
-        // Scale the image if dimensions are bigger than preview_win
-        if(width > maxx)
-        {
-            height = height * maxx/width;
-            width = maxx;
-        }
-        if(height > maxy)
-        {
-            width = width * maxy/height;
-            height = maxy;
-        }
+        //// Scale the image if dimensions are bigger than preview_win
+        //if(width > maxx)
+        //{
+        //    height = height * maxx/width;
+        //    width = maxx;
+        //}
+        //if(height > maxy)
+        //{
+        //    width = width * maxy/height;
+        //    height = maxy;
+        //}
 
         // Run the w3mimgdisplay command  with appropriate arguments
-        sprintf(imgdisplay_command,"echo -e '0;1;%d;%d;%d;%d;;;;;%s\n4;\n3;' | /usr/lib/w3m/w3mimgdisplay",maxx+maxx/5,8,width,height,filepath);
+        //sprintf(imgdisplay_command,"echo -e '0;1;%d;%d;%d;%d;;;;;%s\n4;\n3;' | %s",maxx+maxx/5,8,width,height,filepath,W3MIMGDISPLAY_PATH);
+        sprintf(imgdisplay_command,"%s %d %d %d %d %s",DISPLAYIMG,maxx,2,maxx-6,maxy,filepath);
         system(imgdisplay_command);
         exit(1);
     }
@@ -608,7 +612,7 @@ void getPreview(char *filepath, int maxy, int maxx)
     if(strcasecmp("jpg",last) == 0 || strcasecmp("png",last) == 0 || strcasecmp("gif",last) == 0 || strcasecmp("jpeg",last) == 0 || strcasecmp("mp3",last) == 0)
     {
         getImgPreview(filepath, maxy, maxx);
-        clearFlag = 1;
+        clearFlagImg = 1;
     }
     else if(strcasecmp("mp4",last) == 0 || strcasecmp("mkv",last) == 0 || strcasecmp("avi",last) == 0 || strcasecmp("webm",last) == 0)
         getDummyVidPreview(filepath, maxy, maxx);
@@ -892,6 +896,14 @@ void handleFlags(char** directories)
         wclear(preview_win);
         wrefresh(preview_win);
         clearFlag = 0;
+    }
+
+    // Clear the preview_win for images
+    if(clearFlagImg == 1)
+    {
+        sprintf(temp_dir,"%s %d %d %d %d", CLEARIMG, maxx/2+2, 2, maxx/2-3, maxy+5);
+        system(temp_dir);
+        clearFlagImg = 0;
     }
 
     // Select the file in `last` and set `start` accordingly

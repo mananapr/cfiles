@@ -65,6 +65,11 @@ or press `m` in `cfiles` to add new bookmarks.
 
 `cfiles` looks for external scripts in the `$HOME/.cache/cfiles/scripts` directory. Make sure the scripts are executable before moving them to the scripts directory.
 
+
+## Image Previews
+`cfiles` uses `w3mimgdisplay` to generate imagepreviews. To setup imagepreviews, move the `displayimg` and `clearimg` scripts to wherever you like and the set the appropriate path in `config,h`.
+You may have to modify the scripts a little, about which you can read [here](https://wiki.vifm.info/index.php/How_to_preview_images).
+
 ## Why C?
 I wanted to improve my C and learn ncurses so I decided this would be an ideal project.
 
@@ -98,7 +103,7 @@ a similar UI.
 - [x] Add color support
 - [x] Add bookmarks
 - [x] Add ability to run external scripts
-- [ ] Remove hardcoded paths
+- [x] Remove hardcoded paths
 - [ ] Use dynamic allocation wherever static arrays are used
 - [ ] Replace `system()` by safer functions
 - [ ] Refactor Code
