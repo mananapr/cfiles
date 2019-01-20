@@ -24,7 +24,7 @@
 
 
 /*
-    Change your keybindings in this section    
+    Change your keybindings in this section
 */
 
 // Go to the end of the current directory

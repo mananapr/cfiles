@@ -60,7 +60,7 @@ Note that this also means the selection list will persist even if all instances 
 
 `cfiles` also uses `$HOME/.local/share/Trash/files` as the Trash Directory, so make sure this directory exists before you try to delete a file.
 
-For storing bookmarks, `cfiles` uses `$HOME/.cache/cfiles/bookmarks` file. Bookmarks are stored in the form `<key>:<path>`. You can either edit this file directly 
+For storing bookmarks, `cfiles` uses `$HOME/.cache/cfiles/bookmarks` file. Bookmarks are stored in the form `<key>:<path>`. You can either edit this file directly
 or press `m` in `cfiles` to add new bookmarks.
 
 `cfiles` looks for external scripts in the `$HOME/.cache/cfiles/scripts` directory. Make sure the scripts are executable before moving them to the scripts directory.
@@ -98,4 +98,7 @@ a similar UI.
 - [x] Add color support
 - [x] Add bookmarks
 - [x] Add ability to run external scripts
+- [ ] Remove hardcoded paths
+- [ ] Use dynamic allocation wherever static arrays are used
+- [ ] Replace `system()` by safer functions
 - [ ] Refactor Code
