@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <limits.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
@@ -47,13 +48,13 @@ int i = 0;
 char* dir;
 
 // Name of selected file
-char selected_file[128];
+char selected_file[NAME_MAX];
 
 // Name of the editor
 char editor[20];
 
 // char array to work with strtok() and for other one time use
-char temp_dir[250];
+char temp_dir[PATH_MAX];
 
 // To work with strtok()
 char *pch;
@@ -66,25 +67,25 @@ struct passwd *info;
    `dir` for current_win
    `next_dir` for preview_win
  */
-char sort_dir[250];
+char sort_dir[PATH_MAX];
 
 // Stores the path for the cache directory
-char cache_path[250];
+char cache_path[PATH_MAX];
 
 // Stores the path for the clipboard file
-char clipboard_path[250];
+char clipboard_path[PATH_MAX];
 
 // Stores bookmarks file path
-char bookmarks_path[250];
+char bookmarks_path[PATH_MAX];
 
 // Stores scripts directory path
-char scripts_path[250];
+char scripts_path[PATH_MAX];
 
 // Stores the path for the temp clipboard file
-char temp_clipboard_path[250];
+char temp_clipboard_path[PATH_MAX];
 
 // Stores the path for trash
-char trash_path[250];
+char trash_path[PATH_MAX];
 
 // Index of currently selected item in `char* directories`
 int selection = 0;
@@ -143,9 +144,9 @@ void init()
 
     // Set the editor
     if( getenv("EDITOR") == NULL)
-        sprintf(editor, "%s", "vim");
+        snprintf(editor, 20, "%s", "vim");
     else
-        sprintf(editor, "%s", getenv("EDITOR"));
+        snprintf(editor, 20, "%s", getenv("EDITOR"));
 
     // Make the cache directory
     struct stat st = {0};
@@ -155,15 +156,15 @@ void init()
     }
 
     // Set the path for the clipboard file
-    sprintf(clipboard_path,"%s/clipboard",cache_path);
+    snprintf(clipboard_path,PATH_MAX,"%s/clipboard",cache_path);
     // Set the path for the bookmarks file
-    sprintf(bookmarks_path,"%s/bookmarks",cache_path);
+    snprintf(bookmarks_path,PATH_MAX,"%s/bookmarks",cache_path);
     // Set the path for the scripts directory
-    sprintf(scripts_path,"%s/scripts",cache_path);
+    snprintf(scripts_path,PATH_MAX,"%s/scripts",cache_path);
     // Set the path for the temp clipboard file
-    sprintf(temp_clipboard_path,"%s/clipboard.tmp",cache_path);
+    snprintf(temp_clipboard_path,PATH_MAX,"%s/clipboard.tmp",cache_path);
     // Set the path for trash
-    sprintf(trash_path,"%s/.local/share/Trash/files",info->pw_dir);
+    snprintf(trash_path,PATH_MAX,"%s/.local/share/Trash/files",info->pw_dir);
 
     if (stat(scripts_path, &st) == -1) {
         mkdir(scripts_path, 0751);
@@ -237,9 +238,9 @@ int getNumberOfBookmarks()
     {
         return -1;
     }
-    char buf[250];
+    char buf[PATH_MAX];
     int num = 0;
-    while(fgets(buf, 250, (FILE*) fp))
+    while(fgets(buf, PATH_MAX, (FILE*) fp))
     {
         num++;
     }
@@ -301,8 +302,8 @@ int bookmarkExists(char bookmark)
     {
         return 0;
     }
-    char buf[250];
-    while(fgets(buf, 250, (FILE*) fp))
+    char buf[PATH_MAX];
+    while(fgets(buf, PATH_MAX, (FILE*) fp))
     {
         if(buf[0] == bookmark)
         {
@@ -343,12 +344,12 @@ WINDOW *create_newwin(int height, int width, int starty, int startx)
 int compare (const void * a, const void * b )
 {
     // They store the full paths of the arguments
-    char temp_filepath1[250];
-    char temp_filepath2[250];
+    char temp_filepath1[PATH_MAX];
+    char temp_filepath2[PATH_MAX];
 
     // Generate full paths
-    sprintf(temp_filepath1,"%s/%s", sort_dir, *(char **)a);
-    sprintf(temp_filepath2,"%s/%s", sort_dir, *(char **)b);
+    snprintf(temp_filepath1,PATH_MAX,"%s/%s", sort_dir, *(char **)a);
+    snprintf(temp_filepath2,PATH_MAX,"%s/%s", sort_dir, *(char **)b);
 
     if(is_regular_file(temp_filepath1) == 0 && is_regular_file(temp_filepath2) == 1)
         return -1;
@@ -373,9 +374,9 @@ void getMIME(char *filepath, char mime[10])
     {
         exit(0);
     }
-    while(fgets(buf,250,fp) != NULL){}
+    while(fgets(buf,20,fp) != NULL){}
     strtok(buf,"/");
-    strcpy(mime,buf);
+    strncpy(mime,buf,20);
 }
 
 
@@ -384,12 +385,12 @@ void getMIME(char *filepath, char mime[10])
  */
 void openFile(char *filepath)
 {
-    char mime[10];
+    char mime[20];
     getMIME(filepath, mime);
     if(strcmp(mime,"text") == 0)
     {
-        char cmd[250];
-        sprintf(cmd,"%s %s",editor, filepath);
+        char cmd[PATH_MAX];
+        snprintf(cmd, PATH_MAX, "%s %s",editor, filepath);
         endwin();
         system(cmd);
         return;
@@ -410,15 +411,15 @@ void openFile(char *filepath)
 int checkClipboard(char *filepath)
 {
     FILE *f = fopen(clipboard_path, "r");
-    char buf[250];
-    char temp[250];
-    sprintf(temp,"%s", filepath);
+    char buf[PATH_MAX];
+    char temp[PATH_MAX];
+    snprintf(temp,PATH_MAX,"%s", filepath);
     temp[strlen(temp)]='\0';
     if(f == NULL)
     {
         return 0;
     }
-    while(fgets(buf, 250, (FILE*) f))
+    while(fgets(buf, PATH_MAX, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
         if(strcmp(temp,buf) == 0)
@@ -451,9 +452,9 @@ void writeClipboard(char *filepath)
  */
 void removeClipboard(char *filepath)
 {
-    char cmd[250];
+    char cmd[PATH_MAX];
     filepath[strlen(filepath)-1] = '\0';
-    sprintf(cmd,"sed -i '\\|^%s|d' %s", filepath, clipboard_path);
+    snprintf(cmd, PATH_MAX, "sed -i '\\|^%s|d' %s", filepath, clipboard_path);
     system(cmd);
 }
 
@@ -477,17 +478,16 @@ void getImgPreview(char *filepath, int maxy, int maxx)
 {
     pid_t pid;
     FILE *fp;
-    char buf[64];
 
     pid = fork();
 
     if (pid == 0)
     {
         // Stores shell command for displaying image through displayimg script
-        char imgdisplay_command[250];
+        char imgdisplay_command[PATH_MAX];
 
         // Run the displayimg script with appropriate arguments
-        sprintf(imgdisplay_command,"%s %d %d %d %d %s",DISPLAYIMG,maxx,2,maxx-6,maxy,filepath);
+        snprintf(imgdisplay_command, PATH_MAX, "%s %d %d %d %d %s",DISPLAYIMG,maxx,2,maxx-6,maxy,filepath);
         system(imgdisplay_command);
         exit(1);
     }
@@ -526,8 +526,8 @@ void getTextPreview(char *filepath, int maxy, int maxx)
  */
 void getVidPreview(char *filepath, int maxy, int maxx)
 {
-    char buf[250];
-    sprintf(temp_dir,"mediainfo \"%s\" > ~/.cache/cfiles/preview",filepath);
+    char buf[PATH_MAX];
+    snprintf(temp_dir,PATH_MAX,"mediainfo \"%s\" > ~/.cache/cfiles/preview",filepath);
     endwin();
     system(temp_dir);
     sprintf(temp_dir,"%s/preview",cache_path);
@@ -542,10 +542,10 @@ void getVidPreview(char *filepath, int maxy, int maxx)
  */
 void getArchivePreview(char *filepath, int maxy, int maxx)
 {
-    char buf[250];
-    sprintf(temp_dir,"atool -lq \"%s\" > ~/.cache/cfiles/preview",filepath);
+    char buf[PATH_MAX];
+    snprintf(temp_dir, PATH_MAX, "atool -lq \"%s\" > ~/.cache/cfiles/preview",filepath);
     system(temp_dir);
-    sprintf(temp_dir,"%s/preview",cache_path);
+    snprintf(temp_dir,PATH_MAX,"%s/preview",cache_path);
     getTextPreview(temp_dir, maxy, maxx);
 }
 
@@ -673,7 +673,7 @@ int getFiles(char* directory, char* target[])
 void copyFiles(char *present_dir)
 {
     FILE *f = fopen(clipboard_path, "r");
-    char buf[250];
+    char buf[PATH_MAX];
     pid_t pid;
     int status;
     if(f == NULL)
@@ -681,10 +681,10 @@ void copyFiles(char *present_dir)
         return;
     }
     endwin();
-    while(fgets(buf, 250, (FILE*) f))
+    while(fgets(buf, PATH_MAX, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
-        sprintf(temp_dir,"cp -r -v \"%s\" \"%s\"",buf,present_dir);
+        snprintf(temp_dir,PATH_MAX,"cp -r -v \"%s\" \"%s\"",buf,present_dir);
         system(temp_dir);
     }
     refresh();
@@ -697,13 +697,13 @@ void copyFiles(char *present_dir)
 void removeFiles()
 {
     FILE *f = fopen(clipboard_path, "r");
-    char buf[250];
+    char buf[PATH_MAX];
     if(f == NULL)
     {
         return;
     }
     endwin();
-    while(fgets(buf, 250, (FILE*) f))
+    while(fgets(buf, PATH_MAX, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
         sprintf(temp_dir,"rm -r -v \"%s\"",buf);
@@ -725,30 +725,30 @@ void renameFiles()
     FILE *f2;
 
     // For storing shell commands
-    char cmd[250];
+    char cmd[PATH_MAX];
 
     // Buffers for reading clipboard and temp_clipboard
-    char buf[250];
-    char buf2[250];
+    char buf[PATH_MAX];
+    char buf2[PATH_MAX];
 
     // Counters used when reading clipboard and copylock_path
     int count = 0;
     int count2 = 0;
 
     // Make `temp_clipboard`
-    sprintf(cmd,"cp %s %s",clipboard_path,temp_clipboard_path);
+    snprintf(cmd,PATH_MAX,"cp %s %s",clipboard_path,temp_clipboard_path);
     system(cmd);
     // Exit curses mode and open temp_clipboard_path in EDITOR
     endwin();
-    sprintf(cmd,"%s %s", editor, temp_clipboard_path);
+    snprintf(cmd,PATH_MAX,"%s %s", editor, temp_clipboard_path);
     system(cmd);
 
     // Open clipboard and temp_clipboard and mv path from clipboard to adjacent entry in temp_clipboard
-    while(fgets(buf, 250, (FILE*) f))
+    while(fgets(buf, PATH_MAX, (FILE*) f))
     {
         count2=-1;
         f2 = fopen(temp_clipboard_path,"r");
-        while(fgets(buf2, 250, (FILE*) f2))
+        while(fgets(buf2, PATH_MAX, (FILE*) f2))
         {
             count2++;
             if(buf[strlen(buf)-1] == '\n')
@@ -757,7 +757,7 @@ void renameFiles()
             {
                 if(buf2[strlen(buf2)-1] == '\n')
                     buf2[strlen(buf2)-1] = '\0';
-                sprintf(cmd,"mv \"%s\" \"%s\"",buf,buf2);
+                snprintf(cmd,PATH_MAX,"mv \"%s\" \"%s\"",buf,buf2);
                 system(cmd);
             }
         }
@@ -766,7 +766,7 @@ void renameFiles()
     }
     fclose(f);
     // Remove clipboard and temp_clipboard
-    sprintf(cmd,"rm %s %s",temp_clipboard_path,clipboard_path);
+    snprintf(cmd,PATH_MAX,"rm %s %s",temp_clipboard_path,clipboard_path);
     system(cmd);
     // Start curses mode
     refresh();
@@ -779,17 +779,17 @@ void renameFiles()
 void moveFiles(char *present_dir)
 {
     FILE *f = fopen(clipboard_path, "r");
-    char buf[250];
+    char buf[PATH_MAX];
     int status;
     if(f == NULL)
     {
         return;
     }
     endwin();
-    while(fgets(buf, 250, (FILE*) f))
+    while(fgets(buf, PATH_MAX, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
-        sprintf(temp_dir,"mv -f \"%s\" \"%s\"",buf,present_dir);
+        snprintf(temp_dir, PATH_MAX, "mv -f \"%s\" \"%s\"",buf,present_dir);
         system(temp_dir);
     }
     fclose(f);
@@ -963,7 +963,7 @@ int main(int argc, char* argv[])
         int t = 0;
         for( i=start; i<len; i++ )
         {
-            sprintf(temp_dir,"%s/%s",dir,directories[i]);
+            snprintf(temp_dir,PATH_MAX,"%s/%s",dir,directories[i]);
             if(i==selection)
                 wattron(current_win, A_STANDOUT);
             else
@@ -987,22 +987,22 @@ int main(int argc, char* argv[])
         }
 
         // Store name of selected file
-        strcpy(selected_file, directories[selection]);
+        strncpy(selected_file, directories[selection], NAME_MAX);
 
         // Display Status
         displayStatus();
 
         // Stores files in the selected directory
-        char next_dir[250] = "";
+        char next_dir[PATH_MAX] = "";
         // Stores path of parent directory
-        char prev_dir[250] = "";
+        char prev_dir[PATH_MAX] = "";
 
         // Get path of parent directory
-        sprintf(prev_dir,"%s",dir);
+        snprintf(prev_dir,PATH_MAX,"%s",dir);
         getParentPath(prev_dir);
 
         // Get path of child directory
-        sprintf(next_dir,"%s/%s", dir, directories[selection]);
+        snprintf(next_dir,PATH_MAX,"%s/%s", dir, directories[selection]);
         // Stores number of files in the child directory
         len_preview = getNumberofFiles(next_dir);
         // Stores files in the child directory
@@ -1010,7 +1010,7 @@ int main(int argc, char* argv[])
         status = getFiles(next_dir, next_directories);
 
         // Selection is a directory
-        strcpy(sort_dir,next_dir);
+        strncpy(sort_dir,next_dir,PATH_MAX);
         if(len_preview > 0)
             qsort(next_directories, len_preview, sizeof (char*), compare);
 
@@ -1021,7 +1021,7 @@ int main(int argc, char* argv[])
                 for( i=0; i<len_preview; i++ )
                 {
                     wmove(preview_win,i+1,2);
-                    sprintf(temp_dir, "%s/%s", next_dir, next_directories[i]);
+                    snprintf(temp_dir, PATH_MAX, "%s/%s", next_dir, next_directories[i]);
                     if( is_regular_file(temp_dir) == 0 )
                     {
                         wattron(preview_win, A_BOLD);
@@ -1050,8 +1050,8 @@ int main(int argc, char* argv[])
         refreshWindows();
 
         // For fzf file search
-        char cmd[250];
-        char buf[250];
+        char cmd[PATH_MAX];
+        char buf[PATH_MAX];
         FILE *fp;
 
         // For two key keybindings
@@ -1161,18 +1161,18 @@ int main(int argc, char* argv[])
 
                 // Search using fzf
             case KEY_SEARCHALL:
-                sprintf(temp_dir,"cd %s && fzf",info->pw_dir);
+                snprintf(temp_dir,PATH_MAX,"cd %s && fzf",info->pw_dir);
                 endwin();
                 if((fp = popen(temp_dir,"r")) == NULL)
                 {
                     exit(0);
                 }
-                while(fgets(buf,250,fp) != NULL){}
-                char path[250];
-                sprintf(path, "%s/%s",info->pw_dir,buf);
+                while(fgets(buf,PATH_MAX,fp) != NULL){}
+                char path[PATH_MAX];
+                snprintf(path, PATH_MAX, "%s/%s",info->pw_dir,buf);
                 // Copy `path` into `temp_dir` to work with strtok.
                 //Then fetch the last token from `temp_dir` and store it in `last`.
-                strcpy(temp_dir,path);
+                strncpy(temp_dir,path,PATH_MAX);
                 getLastToken("/");
                 getParentPath(path);
                 strcpy(dir,path);
@@ -1185,17 +1185,17 @@ int main(int argc, char* argv[])
                 // Search in the same directory
             case KEY_SEARCHDIR:
                 if( hiddenFlag == 1 )
-                    sprintf(cmd,"cd %s && ls -a | fzf",dir);
+                    snprintf(cmd,PATH_MAX,"cd %s && ls -a | fzf",dir);
                 else
-                    sprintf(cmd,"cd %s && ls | fzf",dir);
+                    snprintf(cmd,PATH_MAX,"cd %s && ls | fzf",dir);
                 endwin();
                 if((fp = popen(cmd,"r")) == NULL)
                 {
                     exit(0);
                 }
-                while(fgets(buf,250,fp) != NULL){}
-                sprintf(path, "%s/%s",info->pw_dir,buf);
-                strcpy(temp_dir,path);
+                while(fgets(buf,PATH_MAX,fp) != NULL){}
+                snprintf(path,PATH_MAX, "%s/%s",info->pw_dir,buf);
+                strncpy(temp_dir,path,PATH_MAX);
                 getLastToken("/");
                 getParentPath(path);
                 strcpy(dir,path);
@@ -1207,7 +1207,7 @@ int main(int argc, char* argv[])
 
                 // Opens bash shell in present directory
             case KEY_SHELL:
-                sprintf(temp_dir,"cd \"%s\" && bash",dir);
+                snprintf(temp_dir,PATH_MAX,"cd \"%s\" && bash",dir);
                 endwin();
                 system(temp_dir);
                 start = 0;
@@ -1219,7 +1219,7 @@ int main(int argc, char* argv[])
             case KEY_RENAME:
                 if( access( clipboard_path, F_OK ) == -1 )
                 {
-                    sprintf(temp_dir, "%s/%s",dir,directories[selection]);
+                    snprintf(temp_dir,PATH_MAX,"%s/%s",dir,directories[selection]);
                     writeClipboard(temp_dir);
                 }
                 renameFiles();
@@ -1227,7 +1227,7 @@ int main(int argc, char* argv[])
 
                 // Write to clipboard
             case KEY_SEL:
-                sprintf(temp_dir, "%s/%s", dir, directories[selection]);
+                snprintf(temp_dir, PATH_MAX, "%s/%s", dir, directories[selection]);
                 if (checkClipboard(temp_dir) == 1)
                     removeClipboard(temp_dir);
                 else
@@ -1319,7 +1319,7 @@ int main(int argc, char* argv[])
             case KEY_VIEWSEL:
                 if( access( clipboard_path, F_OK ) != -1 )
                 {
-                    sprintf(temp_dir,"less %s",clipboard_path);
+                    snprintf(temp_dir,PATH_MAX,"less %s",clipboard_path);
                     endwin();
                     system(temp_dir);
                     refresh();
@@ -1335,7 +1335,7 @@ int main(int argc, char* argv[])
             case KEY_EDITSEL:
                 if( fileExists(clipboard_path) == 1 )
                 {
-                    sprintf(temp_dir,"%s %s", editor, clipboard_path);
+                    snprintf(temp_dir,PATH_MAX,"%s %s", editor, clipboard_path);
                     endwin();
                     system(temp_dir);
                     refresh();
@@ -1385,11 +1385,9 @@ int main(int argc, char* argv[])
                     option--;
                     if(option < len_scripts && option >= 0)
                     {
-                        char cmd[250];
-                        char path[250];
-                        sprintf(temp_dir, "%s/%s", scripts_path, scripts[option]);
-                        sprintf(path, "%s/%s", dir, directories[selection]);
-                        sprintf(cmd, "%s %s", temp_dir, path);
+                        snprintf(temp_dir, PATH_MAX, "%s/%s", scripts_path, scripts[option]);
+                        snprintf(buf, PATH_MAX, "%s/%s", dir, directories[selection]);
+                        snprintf(cmd, PATH_MAX, "%s %s", temp_dir, buf);
                         endwin();
                         system(cmd);
                         refresh();
