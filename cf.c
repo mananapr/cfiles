@@ -51,22 +51,22 @@ int allocSize;
 char selected_file[NAME_MAX];
 
 // Direcotry to be opened
-char* dir;
+char* dir = NULL;
 
 // Stores files in the selected directory
-char *next_dir;
+char *next_dir = NULL;
 
 // Stores path of parent directory
-char *prev_dir;
+char *prev_dir = NULL;
 
 // Name of the editor
-char *editor;
+char *editor = NULL;
 
 // char array to work with strtok() and for other one time use
-char *temp_dir;
+char *temp_dir = NULL;
 
 // To work with strtok()
-char *pch;
+char *pch = NULL;
 
 // Stores Home Directory of User
 struct passwd *info;
@@ -76,25 +76,25 @@ struct passwd *info;
    `dir` for current_win
    `next_dir` for preview_win
  */
-char *sort_dir;
+char *sort_dir = NULL;
 
 // Stores the path for the cache directory
-char *cache_path;
+char *cache_path = NULL;
 
 // Stores the path for the clipboard file
-char *clipboard_path;
+char *clipboard_path = NULL;
 
 // Stores bookmarks file path
-char *bookmarks_path;
+char *bookmarks_path = NULL;
 
 // Stores scripts directory path
-char *scripts_path;
+char *scripts_path = NULL;
 
 // Stores the path for the temp clipboard file
-char *temp_clipboard_path;
+char *temp_clipboard_path = NULL;
 
 // Stores the path for trash
-char *trash_path;
+char *trash_path = NULL;
 
 // Index of currently selected item in `char* directories`
 int selection = 0;
@@ -359,7 +359,7 @@ void openBookmarkDir(char secondKey)
 
 /*
    Checks if bookmark denoted with `bookmark` exists
- */
+*/
 int bookmarkExists(char bookmark)
 {
     FILE *fp = fopen(bookmarks_path, "r");
@@ -385,7 +385,7 @@ int bookmarkExists(char bookmark)
 
 /*
    Adds new bookmark
- */
+*/
 void addBookmark(char bookmark, char *path)
 {
     FILE *fp = fopen(bookmarks_path, "a+");
@@ -411,8 +411,8 @@ WINDOW *create_newwin(int height, int width, int starty, int startx)
 int compare (const void * a, const void * b )
 {
     // They store the full paths of the arguments
-    char *temp_filepath1;
-    char *temp_filepath2;
+    char *temp_filepath1 = NULL;
+    char *temp_filepath2 = NULL;
 
     // Allocate Memory and Generate full paths
     allocSize = snprintf(NULL,0,"%s/%s", sort_dir, *(char **)a);
@@ -449,13 +449,13 @@ int compare (const void * a, const void * b )
 void getMIME(char *filepath, char mime[50])
 {
     char buf[50];
-    char *cmd;
+    char *cmd = NULL;
     FILE *fp;
 
     // Allocate Memory to `cmd`
-    allocSize = snprintf(NULL, 0, "xdg-mime query filetype %s", filepath);
+    allocSize = snprintf(NULL, 0, "xdg-mime query filetype \'%s\'", filepath);
     cmd = malloc(allocSize+1);
-    snprintf(cmd, allocSize+1, "xdg-mime query filetype %s", filepath);
+    snprintf(cmd, allocSize+1, "xdg-mime query filetype \'%s\'", filepath);
 
     if((fp = popen(cmd,"r")) == NULL)
     {
@@ -504,7 +504,7 @@ int checkClipboard(char *filepath)
 {
     FILE *f = fopen(clipboard_path, "r");
     char buf[PATH_MAX];
-    char *temp;
+    char *temp = NULL;
     // Allocate Memory to `temp`
     allocSize = snprintf(NULL,0,"%s", filepath);
     temp = malloc(allocSize+1);
@@ -551,7 +551,7 @@ void writeClipboard(char *filepath)
  */
 void removeClipboard(char *filepath)
 {
-    char *cmd;
+    char *cmd = NULL;
     filepath[strlen(filepath)-1] = '\0';
     // Allocate Memory to `cmd`
     allocSize = snprintf(NULL, 0, "sed -i '\\|^%s|d' %s", filepath, clipboard_path);
@@ -635,7 +635,7 @@ void getTextPreview(char *filepath, int maxy, int maxx)
  */
 void getVidPreview(char *filepath, int maxy, int maxx)
 {
-    char *buf;
+    char *buf = NULL;
 
     // Reallocate `temp_dir` and store `mediainfo` command
     free(temp_dir);
@@ -877,7 +877,7 @@ void renameFiles()
     FILE *f2;
 
     // For storing shell commands
-    char *cmd;
+    char *cmd = NULL;
 
     // Buffers for reading clipboard and temp_clipboard
     char buf[PATH_MAX];
