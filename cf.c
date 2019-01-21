@@ -164,11 +164,21 @@ void init()
         snprintf(editor, allocSize+1, "%s", getenv("EDITOR"));
     }
 
-    // Make the cache directory
+    // Get the cache directory path
     struct stat st = {0};
-    allocSize = snprintf(NULL,0,"%s/.cache/cfiles",info->pw_dir);
-    cache_path = malloc(allocSize+1);
-    snprintf(cache_path,allocSize+1,"%s/.cache/cfiles",info->pw_dir);
+    if( getenv("XDG_CACHE_HOME") == NULL)
+    {
+        allocSize = snprintf(NULL,0,"%s/.cache/cfiles",info->pw_dir);
+        cache_path = malloc(allocSize+1);
+        snprintf(cache_path,allocSize+1,"%s/.cache/cfiles",info->pw_dir);
+    }
+    else
+    {
+        allocSize = snprintf(NULL,0,"%s/cfiles",getenv("XDG_CACHE_HOME"));
+        cache_path = malloc(allocSize+1);
+        snprintf(cache_path,allocSize+1,"%s/cfiles",getenv("XDG_CACHE_HOME"));
+    }
+    // Make the cache directory
     if (stat(cache_path, &st) == -1) {
         mkdir(cache_path, 0751);
     }
@@ -1200,7 +1210,8 @@ int main(int argc, char* argv[])
         // Stores number of files in the child directory
         len_preview = getNumberofFiles(next_dir);
         // Stores files in the child directory
-        char* next_directories[len_preview];
+        char** next_directories;
+        next_directories = (char **)malloc(len_preview * sizeof(char *));
         status = getFiles(next_dir, next_directories);
 
         // Selection is a directory
@@ -1730,6 +1741,7 @@ int main(int argc, char* argv[])
         {
             free(directories[i]);
         }
+        free(next_directories);
 
     } while( ch != 'q');
 

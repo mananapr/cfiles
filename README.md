@@ -53,18 +53,19 @@ To install, simply move the generated executable to a directory that is in your 
 | <kbd>q</kbd> | Quit |
 
 ## Directories Used
-`cfiles` uses `$HOME/.cache/cfiles` directory to store the clipboard file. This is used so that the clipboard
+`cfiles` uses `$XDG_CACHE_HOME/cfiles` directory to store the clipboard file. This is used so that the clipboard
 can be shared between multiple instances of `cfiles`. That's why I won't be adding tabs in `cfiles` because multiple
 instances can be openend and managed by any terminal multiplexer or your window manager.
 Note that this also means the selection list will persist even if all instances are closed.
 
 `cfiles` also uses `$HOME/.local/share/Trash/files` as the Trash Directory, so make sure this directory exists before you try to delete a file.
 
-For storing bookmarks, `cfiles` uses `$HOME/.cache/cfiles/bookmarks` file. Bookmarks are stored in the form `<key>:<path>`. You can either edit this file directly
+For storing bookmarks, `cfiles` uses `$XDG_CACHE_HOME/cfiles/bookmarks` file. Bookmarks are stored in the form `<key>:<path>`. You can either edit this file directly
 or press `m` in `cfiles` to add new bookmarks.
 
-`cfiles` looks for external scripts in the `$HOME/.cache/cfiles/scripts` directory. Make sure the scripts are executable before moving them to the scripts directory.
+`cfiles` looks for external scripts in the `$XDG_CACHE_HOME/cfiles/scripts` directory. Make sure the scripts are executable before moving them to the scripts directory.
 
+If `$XDG_CACHE_HOME` is not set, then `$HOME/.cache` is used.
 
 ## Image Previews
 `cfiles` uses `w3mimgdisplay` to generate imagepreviews. To setup imagepreviews, move the `displayimg` and `clearimg` scripts to wherever you like and the set the appropriate path in `config,h`.
