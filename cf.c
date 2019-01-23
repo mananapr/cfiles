@@ -374,6 +374,7 @@ int bookmarkExists(char bookmark)
         if(buf[0] == bookmark)
         {
             fclose(fp);
+            free(buf);
             return 1;
         }
     }
@@ -512,6 +513,7 @@ int checkClipboard(char *filepath)
     temp[strlen(temp)]='\0';
     if(f == NULL)
     {
+        free(temp);
         return 0;
     }
     while(fgets(buf, PATH_MAX, (FILE*) f))
@@ -1128,15 +1130,31 @@ int main(int argc, char* argv[])
     // Main Loop
     do
     {
+        // Stores length of VLA `directories`
+        int temp_len;
+
         // Get number of files in the home directory
         len = getNumberofFiles(dir);
 
+        // Set temp_len to 0 if less than 0
+        if(len < 0)
+            temp_len = 0;
+        else
+            temp_len = len;
+
         // Array of all the files in the current directory
-        char* directories[len];
+        char* directories[temp_len];
 
         // Store files in `dir` in the `directories` array
         int status;
         status = getFiles(dir, directories);
+
+        if( status == -1 )
+        {
+            endwin();
+            printf("Couldn't open \'%s\'", dir);
+            exit(1);
+        }
 
         // Sort files by name
         allocSize = snprintf(NULL,0,"%s",dir);
@@ -1679,8 +1697,15 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
+                    int status;
                     char* scripts[len_scripts];
-                    getFiles(scripts_path, scripts);
+                    status = getFiles(scripts_path, scripts);
+                    if(status == -1)
+                    {
+                        displayAlert("Cannot fetch scripts!");
+                        sleep(1);
+                        break;
+                    }
                     keys_win = create_newwin(len_scripts+1, maxx, maxy-len_scripts, 0);
                     wprintw(keys_win,"%s\t%s\n", "S.No.", "Name");
                     for(i=0; i<len_scripts; i++)
