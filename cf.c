@@ -492,7 +492,7 @@ void openFile(char *filepath)
     pid = fork();
     if (pid == 0)
     {
-        execl("/usr/bin/xdg-open", "xdg-open", filepath, (char *)0);
+        execl(FILE_OPENER, FILE_OPENER, filepath, (char *)0);
         exit(1);
     }
 }

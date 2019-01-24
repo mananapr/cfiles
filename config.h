@@ -11,6 +11,9 @@
 // Set to 0 if you want to disable borders
 #define SHOW_BORDERS 1
 
+// Program usd to open non-text file (Eg: `xdg-open` or `thunar`)
+#define FILE_OPENER "/usr/bin/xdg-open"
+
 // Display Image Script
 #define DISPLAYIMG "/home/manan/Scripts/displayimg"
 // Clear Image Preview Script
