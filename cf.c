@@ -1136,9 +1136,9 @@ int main(int argc, char* argv[])
         // Get number of files in the home directory
         len = getNumberofFiles(dir);
 
-        // Set temp_len to 0 if less than 0
-        if(len < 0)
-            temp_len = 0;
+        // Set temp_len to 1 if `len` is less than 0
+        if(len <= 0)
+            temp_len = 1;
         else
             temp_len = len;
 
@@ -1227,9 +1227,14 @@ int main(int argc, char* argv[])
 
         // Stores number of files in the child directory
         len_preview = getNumberofFiles(next_dir);
+        // Set temp_len to 1 if `len_preview` is less than 0
+        if(len_preview <= 0)
+            temp_len = 1;
+        else
+            temp_len = len_preview;
         // Stores files in the child directory
         char** next_directories;
-        next_directories = (char **)malloc(len_preview * sizeof(char *));
+        next_directories = (char **)malloc(temp_len * sizeof(char *));
         status = getFiles(next_dir, next_directories);
 
         // Selection is a directory
@@ -1690,7 +1695,7 @@ int main(int argc, char* argv[])
             // Run External Script
             case KEY_SCRIPT:
                 len_scripts = getNumberofFiles(scripts_path);
-                if(len_scripts == 0)
+                if(len_scripts <= 0)
                 {
                     displayAlert("No scripts found!");
                     sleep(1);

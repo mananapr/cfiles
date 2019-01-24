@@ -105,6 +105,6 @@ a similar UI.
 - [x] Add bookmarks
 - [x] Add ability to run external scripts
 - [x] Remove hardcoded paths
-- [ ] Use dynamic allocation wherever static arrays are used
+- [x] Use dynamic allocation wherever static arrays are used
 - [ ] Replace `system()` by safer functions
 - [ ] Refactor Code
