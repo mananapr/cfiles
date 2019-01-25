@@ -9,9 +9,8 @@ minimal.
 - ncurses
 - `cp`and `mv` for copying and moving
 - `fzf` for searching
-- `w3mimgdisplay` for image previews
+- `w3mimgdisplay` or `Überzug` for image previews
 - `xdg-open` for opening programs
-- `vim` for renaming, bulk renaming and editing clipboard
 - `mediainfo` for viewing media info and file sizes
 - `sed` for removing a particular selection
 - `atool` for archive previews
@@ -19,9 +18,13 @@ minimal.
 ## Compiling and Installation
 To compile, run
 
-   `gcc cf.c -lncurses -o cf`
+    `make`
 
-To install, simply move the generated executable to a directory that is in your `$PATH`
+and then run,
+
+    `sudo make install`
+
+to install.
 
 ## Keybindings
 | Key | Function |

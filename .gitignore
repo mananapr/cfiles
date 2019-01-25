@@ -1,9 +1,1 @@
-cf
 cfiles
-build.ninja
-CMakeCache.txt
-.ninja_deps
-.ninja_log
-rules.ninja
-cmake_install.cmake
-CMakeFiles/

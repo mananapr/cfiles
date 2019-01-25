@@ -603,10 +603,6 @@ void getImgPreview(char *filepath, int maxy, int maxx)
         execl(DISPLAYIMG,DISPLAYIMG,arg1,arg2,arg3,arg4,filepath,(char *)NULL);
         exit(1);
     }
-    else
-    {
-        signal(SIGCHLD, SIG_IGN);
-    }
 }
 
 
