@@ -19,6 +19,7 @@
 #include <string.h>
 #include <strings.h>
 #include <limits.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
@@ -602,6 +603,10 @@ void getImgPreview(char *filepath, int maxy, int maxx)
         execl(DISPLAYIMG,DISPLAYIMG,arg1,arg2,arg3,arg4,filepath,(char *)NULL);
         exit(1);
     }
+    else
+    {
+        signal(SIGCHLD, SIG_IGN);
+    }
 }
 
 
@@ -1160,7 +1165,9 @@ int main(int argc, char* argv[])
         allocSize = snprintf(NULL,0,"%s",dir);
         sort_dir = malloc(allocSize+1);
         strncpy(sort_dir,dir,allocSize+1);
-        qsort(directories, len, sizeof (char*), compare);
+
+        if( len > 0 )
+            qsort(directories, len, sizeof (char*), compare);
 
         // In case the last file is selected and it get's removed or moved
         if(selection > len-1)

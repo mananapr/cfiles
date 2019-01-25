@@ -1,6 +1,7 @@
 #ifndef CONFIG
 #define CONFIG
 
+
 /*
     cfiles settings
 */
@@ -11,13 +12,15 @@
 // Set to 0 if you want to disable borders
 #define SHOW_BORDERS 1
 
-// Program usd to open non-text file (Eg: `xdg-open` or `thunar`)
+// Program used to open non-text file (Eg: `xdg-open` or `thunar`)
 #define FILE_OPENER "/usr/bin/xdg-open"
 
 // Display Image Script
 #define DISPLAYIMG "/home/manan/Scripts/displayimg"
+
 // Clear Image Preview Script
 #define CLEARIMG "/home/manan/Scripts/clearimg"
+
 
 /*
     Color Settings
@@ -25,8 +28,10 @@
 
 // Shell Color Number to use for directories
 #define DIR_COLOR 2
+
 // Shell Color Number to use for file count which is displayed in the statusbar
 #define STATUS_FILECOUNT_COLOR 1
+
 // Shell Color Number to use for selected file which is displayed in the statusbar
 #define STATUS_SELECTED_COLOR 6
 

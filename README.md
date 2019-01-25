@@ -68,7 +68,7 @@ or press `m` in `cfiles` to add new bookmarks.
 If `$XDG_CACHE_HOME` is not set, then `$HOME/.cache` is used.
 
 ## Image Previews
-`cfiles` uses `w3mimgdisplay` to generate imagepreviews. To setup imagepreviews, move the `displayimg` and `clearimg` scripts to wherever you like and the set the appropriate path in `config,h`.
+`cfiles` uses `w3mimgdisplay` to generate image previews. To setup image previews, move the `displayimg` and `clearimg` scripts to wherever you like and the set the appropriate path in `config.h`.
 You may have to modify the scripts a little, about which you can read [here](https://wiki.vifm.info/index.php/How_to_preview_images).
 
 ## Why C?
