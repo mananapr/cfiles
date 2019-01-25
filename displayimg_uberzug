@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+function ImageLayer {
+    ueberzug layer -sp json 2> /dev/null
+}
+
+# ~/ doesn't work
+path_to_image="$5"
+x="$1"
+y="$(($2-1))"
+maxx="$3"
+maxy="$(($4-2))"
+
+function add_image {
+    echo "{\"action\": \"add\", \"identifier\": \"image\", \"x\": $x, \"y\": $y, \"max_width\": $maxx, \"max_height\": $maxy, \"path\": \"$path_to_image\"}";
+}
+
+ImageLayer -< <(
+    add_image
+    read
+)

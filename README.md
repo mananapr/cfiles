@@ -109,5 +109,6 @@ a similar UI.
 - [x] Add ability to run external scripts
 - [x] Remove hardcoded paths
 - [x] Use dynamic allocation wherever static arrays are used
+- [ ] Update README section about Image previews and add about `Uberzug`
 - [ ] Replace `system()` by safer functions
 - [ ] Refactor Code

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+kill -9 `ps aux | grep uberzug | grep -v grep | sort | awk '{print $2}'`
+
+#function ImageLayer {
+#    ueberzug layer -sp json
+#}
+#
+#function remove_image {
+#    echo "{\"action\": \"remove\", \"identifier\": \"image\"}";
+#}
+#
+#ImageLayer -< <(
+#    remove_image
+#)
