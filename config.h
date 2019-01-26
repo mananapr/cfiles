@@ -16,10 +16,10 @@
 #define FILE_OPENER "/usr/bin/xdg-open"
 
 // Display Image Script
-#define DISPLAYIMG "/home/manan/Scripts/displayimg"
+#define DISPLAYIMG "/home/manan/Scripts/displayimg_uberzug"
 
 // Clear Image Preview Script
-#define CLEARIMG "/home/manan/Scripts/clearimg"
+#define CLEARIMG "/home/manan/Scripts/clearimg_uberzug"
 
 
 /*

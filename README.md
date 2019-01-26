@@ -71,7 +71,26 @@ or press `m` in `cfiles` to add new bookmarks.
 If `$XDG_CACHE_HOME` is not set, then `$HOME/.cache` is used.
 
 ## Image Previews
-`cfiles` uses `w3mimgdisplay` to generate image previews. To setup image previews, move the `displayimg` and `clearimg` scripts to wherever you like and the set the appropriate path in `config.h`.
+You can either go with `w3mimgdisplay` or `Überzug` ([link](https://github.com/seebye/ueberzug)) for image previews.
+Each method has it's own pros and cons.
+
+1. Überzug
+To use `Überzug` for image previews, set `DISPLAYIMG` and `CLEARIMG` in `config.h` to the paths of `displayimg_uberzug` and `clearimg_uberzug` scripts respectively.
+  * Pros
+    1. Better previews when compared to `w3mimgdisplay`
+  * Cons
+    1. Can't generate previews for mp3 album arts
+    2. Slower scrolling speed when compared to `w3mimgdisplay`
+I personally use `Überzug` because I don't scroll too fast in my image directories. If I am looking for a specific file I just use `fzf` to directly go to it.
+
+2. w3mimgdisplay
+To use `w3mimgdisplay` for image previews, set `DISPLAYIMG` and `CLEARIMG` in `config.h` to the paths of `displayimg` and `clearimg` scripts respectively.
+  * Pros
+    1. Faster scrolling
+    2. Can generate previews of album arts for mp3 files
+  * Cons
+    1. Previews are very inconsistent and may disappear on resizing the terminal or changing workspaces
+    2. You may have to redraw the UI while scrolling by pressing `KEY_RELOAD` (defaults to <kbd>R</kbd>)
 You may have to modify the scripts a little, about which you can read [here](https://wiki.vifm.info/index.php/How_to_preview_images).
 
 ## Why C?
@@ -109,6 +128,6 @@ a similar UI.
 - [x] Add ability to run external scripts
 - [x] Remove hardcoded paths
 - [x] Use dynamic allocation wherever static arrays are used
-- [ ] Update README section about Image previews and add about `Uberzug`
+- [x] Update README section about Image previews and add about `Uberzug`
 - [ ] Replace `system()` by safer functions
 - [ ] Refactor Code
