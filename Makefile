@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -I. -Wall
-LIBS =  -lncurses
+LIBS =  -lncursesw
 SRCS = cf.c
 OBJS = $(SRCS: .c = .o)
 PROG = cfiles

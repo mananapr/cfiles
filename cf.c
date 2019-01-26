@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
+#include <locale.h>
 #include "config.h"
 
 
@@ -147,6 +148,9 @@ int startx, starty, maxx, maxy;
  */
 void init()
 {
+    // Set Locale (For wide characters)
+    setlocale(LC_ALL, "");
+
     // Get UID of user
     uid_t uid = getuid();
     // Get home directory of user from UID
@@ -213,10 +217,19 @@ void init()
         mkdir(scripts_path, 0751);
     }
 
-    // Set dir as $HOME
-    allocSize = snprintf(NULL,0,"%s",info->pw_dir);
-    dir = malloc(allocSize+1);
-    snprintf(dir,allocSize+1,"%s",info->pw_dir);
+    // Set dir as current directory
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) != NULL)
+    {
+        allocSize = snprintf(NULL,0,"%s",cwd);
+        dir = malloc(allocSize+1);
+        snprintf(dir,allocSize+1,"%s",cwd);
+    }
+    else
+    {
+        printf("Couldn't open current directory");
+        exit(1);
+    }
 }
 
 
@@ -583,8 +596,6 @@ void emptyClipboard()
 void getImgPreview(char *filepath, int maxy, int maxx)
 {
     pid_t pid;
-    FILE *fp;
-
     pid = fork();
 
     if (pid == 0)
@@ -819,8 +830,6 @@ void copyFiles(char *present_dir)
 {
     FILE *f = fopen(clipboard_path, "r");
     char buf[PATH_MAX];
-    pid_t pid;
-    int status;
     if(f == NULL)
     {
         return;
@@ -955,7 +964,6 @@ void moveFiles(char *present_dir)
 {
     FILE *f = fopen(clipboard_path, "r");
     char buf[PATH_MAX];
-    int status;
     if(f == NULL)
     {
         return;
@@ -996,10 +1004,10 @@ void init_windows()
  */
 void displayStatus()
 {
-    wmove(status_win,1,1);
+    wmove(status_win,1,0);
     wattron(status_win, COLOR_PAIR(2));
     wprintw(status_win, "(%d/%d)", selection+1, len);
-    wprintw(status_win, "\t%s", dir);
+    wprintw(status_win, " %s", dir);
     wattroff(status_win, COLOR_PAIR(2));
     wattron(status_win, COLOR_PAIR(3));
     wprintw(status_win, "/%s", selected_file);
