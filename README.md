@@ -74,7 +74,8 @@ If `$XDG_CACHE_HOME` is not set, then `$HOME/.cache` is used.
 You can either go with `w3mimgdisplay` or `Überzug` ([link](https://github.com/seebye/ueberzug)) for image previews.
 Each method has it's own pros and cons.
 
-1. Überzug
+1. **Überzug**
+
 To use `Überzug` for image previews, set `DISPLAYIMG` and `CLEARIMG` in `config.h` to the paths of `displayimg_uberzug` and `clearimg_uberzug` scripts respectively.
   * Pros
     1. Better previews when compared to `w3mimgdisplay`
@@ -83,7 +84,8 @@ To use `Überzug` for image previews, set `DISPLAYIMG` and `CLEARIMG` in `config
     2. Slower scrolling speed when compared to `w3mimgdisplay`
 I personally use `Überzug` because I don't scroll too fast in my image directories. If I am looking for a specific file I just use `fzf` to directly go to it.
 
-2. w3mimgdisplay
+2. **w3mimgdisplay**
+
 To use `w3mimgdisplay` for image previews, set `DISPLAYIMG` and `CLEARIMG` in `config.h` to the paths of `displayimg` and `clearimg` scripts respectively.
   * Pros
     1. Faster scrolling
