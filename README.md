@@ -82,6 +82,7 @@ To use `Überzug` for image previews, set `DISPLAYIMG` and `CLEARIMG` in `config
   * Cons
     1. Can't generate previews for mp3 album arts
     2. Slower scrolling speed when compared to `w3mimgdisplay`
+
 I personally use `Überzug` because I don't scroll too fast in my image directories. If I am looking for a specific file I just use `fzf` to directly go to it.
 
 2. **w3mimgdisplay**
@@ -93,6 +94,7 @@ To use `w3mimgdisplay` for image previews, set `DISPLAYIMG` and `CLEARIMG` in `c
   * Cons
     1. Previews are very inconsistent and may disappear on resizing the terminal or changing workspaces
     2. You may have to redraw the UI while scrolling by pressing `KEY_RELOAD` (defaults to <kbd>R</kbd>)
+
 You may have to modify the scripts a little, about which you can read [here](https://wiki.vifm.info/index.php/How_to_preview_images).
 
 ## Why C?
