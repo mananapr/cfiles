@@ -17,11 +17,11 @@ minimal.
 ## Compiling and Installation
 To compile, run
 
-    `make`
+    make
 
 and then run,
 
-    `sudo make install`
+    sudo make install
 
 to install.
 
