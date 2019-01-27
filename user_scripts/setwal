@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+wal -i $1 -o wal-set

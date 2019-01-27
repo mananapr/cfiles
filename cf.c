@@ -5,7 +5,7 @@
 | (__|  _| | |  __/\__ \
  \___|_| |_|_|\___||___/
 
- */
+*/
 
 
 /////////////
@@ -19,11 +19,12 @@
 #include <string.h>
 #include <strings.h>
 #include <limits.h>
-#include <signal.h>
+#include <locale.h>
+#include <fcntl.h>
+#include <pwd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <pwd.h>
-#include <locale.h>
+#include <sys/wait.h>
 #include "config.h"
 
 
@@ -77,7 +78,7 @@ struct passwd *info;
    Base directory to be used for sorting
    `dir` for current_win
    `next_dir` for preview_win
- */
+*/
 char *sort_dir = NULL;
 
 // Stores the path for the cache directory
@@ -145,7 +146,7 @@ int startx, starty, maxx, maxy;
 /*
    Initializes the program
    Sets the relevant file paths
- */
+*/
 void init()
 {
     // Set Locale (For wide characters)
@@ -235,7 +236,7 @@ void init()
 
 /*
    Initializes ncurses
- */
+*/
 void curses_init()
 {
     initscr();
@@ -250,7 +251,7 @@ void curses_init()
 
 /*
    Checks if `path` is a file or directory
- */
+*/
 int is_regular_file(const char *path)
 {
     struct stat path_stat;
@@ -261,7 +262,7 @@ int is_regular_file(const char *path)
 
 /*
    Checks if a file exists or not
- */
+*/
 int fileExists(char *file)
 {
     if( access( file, F_OK ) != -1 )
@@ -273,7 +274,7 @@ int fileExists(char *file)
 
 /*
    Gets the last token from temp_dir by using `tokenizer` as a delimeter
- */
+*/
 void getLastToken(char *tokenizer)
 {
     pch = strtok(temp_dir, tokenizer);
@@ -287,7 +288,7 @@ void getLastToken(char *tokenizer)
 
 /*
    Get number of bookmarks
- */
+*/
 int getNumberOfBookmarks()
 {
     FILE *fp = fopen(bookmarks_path, "r");
@@ -310,7 +311,7 @@ int getNumberOfBookmarks()
 
 /*
    Displays the bookmarks in `keys_win`
- */
+*/
 void displayBookmarks()
 {
     FILE *fp = fopen(bookmarks_path, "r");
@@ -337,7 +338,7 @@ void displayBookmarks()
 
 /*
    Opens the bookmark denoted by `secondKey`
- */
+*/
 void openBookmarkDir(char secondKey)
 {
     FILE *fp = fopen(bookmarks_path, "r");
@@ -411,7 +412,7 @@ void addBookmark(char bookmark, char *path)
 
 /*
    Creates a new window with dimensions `height` and `width` starting at `starty` and `startx`
- */
+*/
 WINDOW *create_newwin(int height, int width, int starty, int startx)
 {
     WINDOW *local_win;
@@ -422,7 +423,7 @@ WINDOW *create_newwin(int height, int width, int starty, int startx)
 
 /*
    For qsort
- */
+*/
 int compare (const void * a, const void * b )
 {
     // They store the full paths of the arguments
@@ -484,7 +485,7 @@ void getMIME(char *filepath, char mime[50])
 
 
 /*
-   Opens a file using xdg-open
+   Opens a file using FILE_OPENER
  */
 void openFile(char *filepath)
 {
@@ -494,13 +495,25 @@ void openFile(char *filepath)
     {
         char *cmd;
         // Allocate Memory to `cmd`
-        allocSize = snprintf(NULL, 0, "%s %s", editor, filepath);
+        allocSize = snprintf(NULL, 0, "%s/%s", "/usr/bin", editor);
         cmd = malloc(allocSize+1);
-        snprintf(cmd, allocSize+1, "%s %s", editor, filepath);
+        snprintf(cmd, allocSize+1, "%s/%s", "/usr/bin", editor);
         endwin();
-        system(cmd);
-        free(cmd);
-        return;
+        // Make a child process to edit file
+        pid_t pid;
+        pid = fork();
+        if (pid == 0)
+        {
+            execl(cmd, cmd, filepath, (char *)0);
+            exit(1);
+        }
+        else
+        {
+            int status;
+            waitpid(pid, &status, 0);
+            free(cmd);
+            return;
+        }
     }
     pid_t pid;
     pid = fork();
@@ -514,7 +527,7 @@ void openFile(char *filepath)
 
 /*
    Checks if path is in clipboard
- */
+*/
 int checkClipboard(char *filepath)
 {
     FILE *f = fopen(clipboard_path, "r");
@@ -547,7 +560,7 @@ int checkClipboard(char *filepath)
 
 /*
    Writes to clipboard
- */
+*/
 void writeClipboard(char *filepath)
 {
     FILE *f = fopen(clipboard_path,"a+");
@@ -564,23 +577,43 @@ void writeClipboard(char *filepath)
 
 /*
    Removes entry from clipboard
- */
+*/
 void removeClipboard(char *filepath)
 {
     char *cmd = NULL;
-    filepath[strlen(filepath)-1] = '\0';
+    char *arg = NULL;
+
     // Allocate Memory to `cmd`
-    allocSize = snprintf(NULL, 0, "sed -i '\\|^%s|d' %s", filepath, clipboard_path);
+    allocSize = snprintf(NULL, 0, "%s", "/usr/bin/sed");
     cmd = malloc(allocSize+1);
-    snprintf(cmd, PATH_MAX, "sed -i '\\|^%s|d' %s", filepath, clipboard_path);
-    system(cmd);
-    free(cmd);
+    snprintf(cmd, allocSize+1, "%s", "/usr/bin/sed");
+
+    // Allocate Memory to `arg`
+    allocSize = snprintf(NULL, 0, "\\|^%s|d", filepath);
+    arg = malloc(allocSize + 1);
+    snprintf(arg, allocSize+1, "\\|^%s|d", filepath);
+
+    // Create a child process to run command
+    pid_t pid;
+    pid = fork();
+    if( pid == 0 )
+    {
+        execl(cmd, cmd, "-i", arg, clipboard_path, (char *)0);
+        exit(1);
+    }
+    else
+    {
+        int status;
+        waitpid(pid, &status, 0);
+        free(arg);
+        free(cmd);
+    }
 }
 
 
 /*
    Empties Clipboard
- */
+*/
 void emptyClipboard()
 {
     if( remove(clipboard_path) == -1)
@@ -592,7 +625,7 @@ void emptyClipboard()
 
 /*
    Gets previews of images
- */
+*/
 void getImgPreview(char *filepath, int maxy, int maxx)
 {
     pid_t pid;
@@ -619,7 +652,7 @@ void getImgPreview(char *filepath, int maxy, int maxx)
 
 /*
    Gets previews of text in files
- */
+*/
 void getTextPreview(char *filepath, int maxy, int maxx)
 {
     // Don't Generate Preview if file size > 50MB
@@ -646,20 +679,11 @@ void getTextPreview(char *filepath, int maxy, int maxx)
 
 /*
    Gets previews of video files
- */
+*/
 void getVidPreview(char *filepath, int maxy, int maxx)
 {
-    char *buf = NULL;
-
-    // Reallocate `temp_dir` and store `mediainfo` command
-    free(temp_dir);
-    allocSize = snprintf(NULL,0,"mediainfo \"%s\" > ~/.cache/cfiles/preview",filepath);
-    temp_dir = malloc(allocSize+1);
-    snprintf(temp_dir,allocSize+1,"mediainfo \"%s\" > ~/.cache/cfiles/preview",filepath);
-
-    // Execute the mediainfo command
-    endwin();
-    system(temp_dir);
+    pid_t pid;
+    int fd;
 
     // Reallocate `temp_dir` and store path to preview file
     free(temp_dir);
@@ -667,45 +691,81 @@ void getVidPreview(char *filepath, int maxy, int maxx)
     temp_dir = malloc(allocSize+1);
     snprintf(temp_dir,allocSize+1,"%s/preview",cache_path);
 
-    // Allocate Memory to `buf` and store command to display preview file
-    allocSize = snprintf(NULL, 0, "less %s", temp_dir);
-    buf = malloc(allocSize+1);
-    snprintf(buf, allocSize+1, "less %s", temp_dir);
+    endwin();
 
-    // Execute the preview command and Free Memory
-    system(buf);
-    free(buf);
+    // Create a child process to run "mediainfo filepath > ~/.cache/cfiles/preview"
+    pid = fork();
+    if( pid == 0 )
+    {
+        remove(temp_dir);
+        fd = open(temp_dir, O_CREAT | O_WRONLY, 0755);
+        // Redirect stdout
+        dup2(fd, 1);
+        execl("/usr/bin/mediainfo", "mediainfo", filepath, (char *)0);
+        exit(1);
+    }
+    else
+    {
+        int status;
+        waitpid(pid, &status, 0);
 
-    refresh();
+        pid = fork();
+        if( pid == 0 )
+        {
+            execl("/usr/bin/less", "less", temp_dir, (char *)0);
+            exit(1);
+        }
+        else
+        {
+            waitpid(pid, &status, 0);
+        }
+
+        refresh();
+    }
 }
 
 
 /*
    Gets previews of archives
- */
+*/
 void getArchivePreview(char *filepath, int maxy, int maxx)
 {
-    // Reallocate `temp_dir`
-    free(temp_dir);
-    allocSize = snprintf(NULL,0,"atool -lq \"%s\" > ~/.cache/cfiles/preview", filepath);
-    temp_dir = malloc(allocSize+1);
-    snprintf(temp_dir, allocSize+1, "atool -lq \"%s\" > ~/.cache/cfiles/preview",filepath);
+    pid_t pid;
+    int fd;
+    int null_fd;
 
-    // Execute comand and Free Memory
-    system(temp_dir);
+    // Reallocate `temp_dir` and store path to preview file
     free(temp_dir);
-
-    // Reallocate `temp_dir`
     allocSize = snprintf(NULL,0,"%s/preview",cache_path);
     temp_dir = malloc(allocSize+1);
     snprintf(temp_dir,allocSize+1,"%s/preview",cache_path);
-    getTextPreview(temp_dir, maxy, maxx);
+
+    // Create a child process to run "atool -lq filepath > ~/.cache/cfiles/preview"
+    pid = fork();
+    if( pid == 0 )
+    {
+        remove(temp_dir);
+        fd = open(temp_dir, O_CREAT | O_WRONLY, 0755);
+        null_fd = open("/dev/null", O_WRONLY);
+        // Redirect stdout
+        dup2(fd, 1);
+        // Redirect errors to /dev/null
+        dup2(null_fd, 2);
+        execl("/usr/bin/atool", "atool", "-lq", filepath, (char *)0);
+        exit(1);
+    }
+    else
+    {
+        int status;
+        waitpid(pid, &status, 0);
+        getTextPreview(temp_dir, maxy, maxx);
+    }
 }
 
 
 /*
    Gets previews of video files (Dummy)
- */
+*/
 void getDummyVidPreview(char *filepath, int maxy, int maxx)
 {
     wmove(preview_win,1,2);
@@ -716,7 +776,7 @@ void getDummyVidPreview(char *filepath, int maxy, int maxx)
 
 /*
    Sets `temp_dir` to filepath and then stores the extension in `last`
- */
+*/
 void getFileType(char *filepath)
 {
     free(temp_dir);
@@ -729,7 +789,7 @@ void getFileType(char *filepath)
 
 /*
    Checks `last` for extension and then calls the appropriate preview function
- */
+*/
 void getPreview(char *filepath, int maxy, int maxx)
 {
     getFileType(filepath);
@@ -749,7 +809,7 @@ void getPreview(char *filepath, int maxy, int maxx)
 
 /*
    Gets path of parent directory
- */
+*/
 void getParentPath(char *path)
 {
     char *p;
@@ -766,7 +826,7 @@ void getParentPath(char *path)
 
 /*
    Returns number of files in `char* directory`
- */
+*/
 int getNumberofFiles(char* directory)
 {
     int len=0;
@@ -795,7 +855,7 @@ int getNumberofFiles(char* directory)
 
 /*
    Stores all the file names in `char* directory` to `char *target[]`
- */
+*/
 int getFiles(char* directory, char* target[])
 {
     int i = 0;
@@ -825,7 +885,7 @@ int getFiles(char* directory, char* target[])
 
 /*
    Copy files in clipboard to `present_dir`
- */
+*/
 void copyFiles(char *present_dir)
 {
     FILE *f = fopen(clipboard_path, "r");
@@ -838,13 +898,18 @@ void copyFiles(char *present_dir)
     while(fgets(buf, PATH_MAX, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
-        // Reallocate `temp_dir` and store command for copying file
-        free(temp_dir);
-        allocSize = snprintf(NULL,0,"cp -r -v \"%s\" \"%s\"",buf,present_dir);
-        temp_dir = malloc(allocSize+1);
-        snprintf(temp_dir,allocSize+1,"cp -r -v \"%s\" \"%s\"",buf,present_dir);
-        // Execute command
-        system(temp_dir);
+        // Create a child process to copy file
+        pid_t pid = fork();
+        if(pid == 0)
+        {
+            execl("/usr/bin/cp", "cp", "-r", "-v", buf, present_dir, (char *)0);
+            exit(1);
+        }
+        else
+        {
+            int status;
+            waitpid(pid, &status, 0);
+        }
     }
     refresh();
     fclose(f);
@@ -852,7 +917,7 @@ void copyFiles(char *present_dir)
 
 /*
    Removes files in clipboard
- */
+*/
 void removeFiles()
 {
     FILE *f = fopen(clipboard_path, "r");
@@ -865,13 +930,18 @@ void removeFiles()
     while(fgets(buf, PATH_MAX, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
-        // Reallocate `temp_dir` and store command for removing file
-        free(temp_dir);
-        allocSize = snprintf(NULL,0,"rm -r -v \"%s\"",buf);
-        temp_dir = malloc(allocSize+1);
-        snprintf(temp_dir,allocSize+1,"rm -r -v \"%s\"",buf);
-        // Execute command
-        system(temp_dir);
+        // Create a child process to remove file
+        pid_t pid = fork();
+        if(pid == 0)
+        {
+            execl("/usr/bin/rm", "rm", "-r", "-v", buf, (char *)0);
+            exit(1);
+        }
+        else
+        {
+            int status;
+            waitpid(pid, &status, 0);
+        }
     }
     refresh();
     fclose(f);
@@ -881,9 +951,12 @@ void removeFiles()
 
 /*
    Rename files in clipboard
- */
+*/
 void renameFiles()
 {
+    // For storing pid of children
+    pid_t pid;
+
     // For opening clipboard and temp_clipboard
     FILE *f = fopen(clipboard_path, "r");
     FILE *f2;
@@ -899,23 +972,40 @@ void renameFiles()
     int count = 0;
     int count2 = 0;
 
-    // Allocate Memory tp `cmd`
-    allocSize = snprintf(NULL,0,"cp %s %s",clipboard_path,temp_clipboard_path);
-    cmd = malloc(allocSize+1);
-    snprintf(cmd,allocSize+1,"cp %s %s",clipboard_path,temp_clipboard_path);
-    // Make `temp_clipboard`
-    system(cmd);
+    // Make a child process to create `temp_clipboard`
+    pid = fork();
+    if( pid == 0 )
+    {
+        execl("/usr/bin/cp", "cp", clipboard_path, temp_clipboard_path, (char *)0);
+        exit(1);
+    }
+    else
+    {
+        int status;
+        waitpid(pid, &status, 0);
+    }
 
-    // Exit curses mode and open temp_clipboard_path in EDITOR
+    // Exit curses mode to open temp_clipboard_path in EDITOR
     endwin();
 
-    // Reallocate `cmd`
-    free(cmd);
-    allocSize = snprintf(NULL,0,"%s %s", editor, temp_clipboard_path);
+    // Allocate `cmd` to store full path of editor
+    allocSize = snprintf(NULL,0,"/usr/bin/%s", editor);
     cmd = malloc(allocSize + 1);
-    snprintf(cmd,allocSize+1,"%s %s", editor, temp_clipboard_path);
-    system(cmd);
-    free(cmd);
+    snprintf(cmd,allocSize+1,"/usr/bin/%s", editor);
+
+    // Create a child process to edit temp_clipboard
+    pid = fork();
+    if( pid == 0 )
+    {
+        execl(cmd, cmd, temp_clipboard_path, (char *)0);
+        exit(1);
+    }
+    else
+    {
+        int status;
+        waitpid(pid, &status, 0);
+        free(cmd);
+    }
 
     // Open clipboard and temp_clipboard and mv path from clipboard to adjacent entry in temp_clipboard
     while(fgets(buf, PATH_MAX, (FILE*) f))
@@ -932,12 +1022,18 @@ void renameFiles()
                 if(buf2[strlen(buf2)-1] == '\n')
                     buf2[strlen(buf2)-1] = '\0';
 
-                // Reallocate `cmd`
-                allocSize = snprintf(NULL,0,"mv \"%s\" \"%s\"",buf,buf2);
-                cmd = malloc(allocSize+1);
-                snprintf(cmd,allocSize+1,"mv \"%s\" \"%s\"",buf,buf2);
-                system(cmd);
-                free(cmd);
+                // Create a child process to rename
+                pid = fork();
+                if( pid == 0 )
+                {
+                    execl("/usr/bin/mv", "mv", buf, buf2, (char *)0);
+                    exit(1);
+                }
+                else
+                {
+                    int status;
+                    waitpid(pid, &status, 0);
+                }
             }
         }
         count++;
@@ -946,11 +1042,8 @@ void renameFiles()
     fclose(f);
 
     // Remove clipboard and temp_clipboard
-    allocSize = snprintf(NULL,0,"rm %s %s",temp_clipboard_path,clipboard_path);
-    cmd = malloc(allocSize+1);
-    snprintf(cmd,allocSize+1,"rm %s %s",temp_clipboard_path,clipboard_path);
-    system(cmd);
-    free(cmd);
+    remove(clipboard_path);
+    remove(temp_clipboard_path);
 
     // Start curses mode
     refresh();
@@ -959,7 +1052,7 @@ void renameFiles()
 
 /*
    Move files in clipboard to `present_dir`
- */
+*/
 void moveFiles(char *present_dir)
 {
     FILE *f = fopen(clipboard_path, "r");
@@ -973,14 +1066,18 @@ void moveFiles(char *present_dir)
     {
         buf[strlen(buf)-1] = '\0';
 
-        // Reallocate `temp_dir` and store command for moving file
-        free(temp_dir);
-        allocSize = snprintf(NULL, 0, "mv -f \"%s\" \"%s\"",buf,present_dir);
-        temp_dir = malloc(allocSize+1);
-        snprintf(temp_dir, allocSize+1, "mv -f \"%s\" \"%s\"",buf,present_dir);
-
-        // Execute command
-        system(temp_dir);
+        // Create a child process to move file
+        pid_t pid = fork();
+        if(pid == 0)
+        {
+            execl("/usr/bin/mv", "mv", "-v", buf, present_dir, (char *)0);
+            exit(1);
+        }
+        else
+        {
+            int status;
+            waitpid(pid, &status, 0);
+        }
     }
     fclose(f);
     refresh();
@@ -990,7 +1087,7 @@ void moveFiles(char *present_dir)
 
 /*
    Creates current_win, preview_win and status_win
- */
+*/
 void init_windows()
 {
     current_win = create_newwin(maxy, maxx/2+2, 0, 0);
@@ -1001,7 +1098,7 @@ void init_windows()
 
 /*
    Displays current status in the status bar
- */
+*/
 void displayStatus()
 {
     wmove(status_win,1,0);
@@ -1018,7 +1115,7 @@ void displayStatus()
 
 /*
    Displays message on status bar
- */
+*/
 void displayAlert(char *message)
 {
     wclear(status_win);
@@ -1030,7 +1127,8 @@ void displayAlert(char *message)
 
 
 /*
- */
+    Refresh ncurses windows
+*/
 void refreshWindows()
 {
     if(SHOW_BORDERS == 1)
@@ -1044,21 +1142,10 @@ void refreshWindows()
 
 
 /*
-   Checks if some flags are enabled and handles them accordingly
- */
-void handleFlags(char** directories)
+    Clears Image
+*/
+void clearImg()
 {
-    // Clear the preview_win
-    if(clearFlag == 1)
-    {
-        wclear(preview_win);
-        wrefresh(preview_win);
-        clearFlag = 0;
-    }
-
-    // Clear the preview_win for images
-    if(clearFlagImg == 1)
-    {
         // Store arguments for CLEARIMG script
         char arg1[5];
         char arg2[5];
@@ -1079,6 +1166,26 @@ void handleFlags(char** directories)
             execl(CLEARIMG,CLEARIMG,arg1,arg2,arg3,arg4,(char *)NULL);
             exit(1);
         }
+}
+
+
+/*
+   Checks if some flags are enabled and handles them accordingly
+*/
+void handleFlags(char** directories)
+{
+    // Clear the preview_win
+    if(clearFlag == 1)
+    {
+        wclear(preview_win);
+        wrefresh(preview_win);
+        clearFlag = 0;
+    }
+
+    // Clear the preview_win for images
+    if(clearFlagImg == 1)
+    {
+        clearImg();
         clearFlagImg = 0;
     }
 
@@ -1299,12 +1406,17 @@ int main(int argc, char* argv[])
         // Draw borders and refresh windows
         refreshWindows();
 
+        // For storing pid of children
+        pid_t pid;
+
         // For fzf
         char *cmd;
         char *buf;
         char *path;
+
         // For popen
         FILE *fp;
+
         // For two key keybindings
         char secondKey;
         // For taking user confirmation
@@ -1317,7 +1429,7 @@ int main(int argc, char* argv[])
                 selection--;
                 selection = ( selection < 0 ) ? 0 : selection;
                 // Scrolling
-                if(len >= maxy)
+                if(len >= maxy-1)
                     if(selection <= start + maxy/2)
                     {
                         if(start == 0)
@@ -1335,7 +1447,7 @@ int main(int argc, char* argv[])
                 selection++;
                 selection = ( selection > len-1 ) ? len-1 : selection;
                 // Scrolling
-                if(len >= maxy)
+                if(len >= maxy-1)
                     if(selection - 1 > maxy/2)
                     {
                         if(start + maxy - 2 != len)
@@ -1528,13 +1640,31 @@ int main(int argc, char* argv[])
 
             // Opens bash shell in present directory
             case KEY_SHELL:
+                // Clear Image Preview (If Present)
+                clearImg();
                 // Reallocate `temp_dir`
                 free(temp_dir);
-                allocSize = snprintf(NULL,0,"cd \"%s\" && bash",dir);
+                allocSize = snprintf(NULL, 0, "cd %s && bash", dir);
                 temp_dir = malloc(allocSize+1);
-                snprintf(temp_dir,allocSize+1,"cd \"%s\" && bash",dir);
+                snprintf(temp_dir, allocSize+1, "cd %s && bash", dir);
+
+                // End ncurses mode
                 endwin();
-                system(temp_dir);
+
+                // Create a child process to run bash
+                pid = fork();
+                if( pid == 0 )
+                {
+                    execl("/usr/bin/bash", "bash", "-c", temp_dir, (char *)0);
+                    exit(1);
+                }
+                else
+                {
+                    int status;
+                    waitpid(pid, &status, 0);
+                }
+
+                // Restart ncurses mode and set appropriate flags
                 start = 0;
                 selection = 0;
                 refresh();
@@ -1617,6 +1747,8 @@ int main(int argc, char* argv[])
 
             // Go to bookmark
             case KEY_BOOKMARK:
+                // Clear Image Preview (If Present)
+                clearImg();
                 len_bookmarks = getNumberOfBookmarks();
                 if( len_bookmarks == -1 )
                 {
@@ -1635,6 +1767,8 @@ int main(int argc, char* argv[])
 
             // Add Bookmark
             case KEY_ADDBOOKMARK:
+                // Clear Image Preview (If Present)
+                clearImg();
                 displayAlert("Enter Bookmark Key");
                 secondKey = wgetch(status_win);
                 if( bookmarkExists(secondKey) == 1 )
@@ -1650,15 +1784,22 @@ int main(int argc, char* argv[])
 
             // See selection list
             case KEY_VIEWSEL:
+                // Exit curses mode to show clipboard
+                endwin();
                 if( access( clipboard_path, F_OK ) != -1 )
                 {
-                    // Reallocate `temp_dir` to command to view clipboard
-                    free(temp_dir);
-                    allocSize = snprintf(NULL,0,"less %s",clipboard_path);
-                    temp_dir = malloc(allocSize+1);
-                    snprintf(temp_dir,allocSize+1,"less %s",clipboard_path);
-                    endwin();
-                    system(temp_dir);
+                    // Create a child process to show clipboard
+                    pid = fork();
+                    if( pid == 0 )
+                    {
+                        execl("/usr/bin/less", "less", clipboard_path, (char *)0);
+                        exit(1);
+                    }
+                    else
+                    {
+                        int status;
+                        waitpid(pid, &status, 0);
+                    }
                     refresh();
                 }
                 else
@@ -1670,15 +1811,29 @@ int main(int argc, char* argv[])
 
             // Edit selection list
             case KEY_EDITSEL:
-                if( fileExists(clipboard_path) == 1 )
+                // Exit curses mode to edit clipboard
+                endwin();
+
+                // Reallocate Memory to `temp_dir` to store full path of editor
+                free(temp_dir);
+                allocSize = snprintf(NULL,0,"/usr/bin/%s", editor);
+                temp_dir = malloc(allocSize+1);
+                snprintf(temp_dir,allocSize+1,"/usr/bin/%s", editor);
+
+                if( access( clipboard_path, F_OK ) != -1 )
                 {
-                    // Reallocate `temp_dir` to command to edit clipboard
-                    free(temp_dir);
-                    allocSize = snprintf(NULL,0,"%s %s", editor, clipboard_path);
-                    temp_dir = malloc(allocSize+1);
-                    snprintf(temp_dir,allocSize+1,"%s %s", editor, clipboard_path);
-                    endwin();
-                    system(temp_dir);
+                    // Create a child process to show clipboard
+                    pid = fork();
+                    if( pid == 0 )
+                    {
+                        execl(temp_dir, editor, clipboard_path, (char *)0);
+                        exit(1);
+                    }
+                    else
+                    {
+                        int status;
+                        waitpid(pid, &status, 0);
+                    }
                     refresh();
                 }
                 else
@@ -1713,6 +1868,8 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
+                    // Clear Image Preview (If Present)
+                    clearImg();
                     int status;
                     char* scripts[len_scripts];
                     status = getFiles(scripts_path, scripts);
@@ -1744,17 +1901,23 @@ int main(int argc, char* argv[])
                         buf = malloc(allocSize+1);
                         snprintf(buf, allocSize+1, "%s/%s", dir, directories[selection]);
 
-                        // Allocate Memory to `cmd` to store the command to execute script with `buf` as argument
-                        allocSize = snprintf(NULL, 0, "%s %s", temp_dir, buf);
-                        cmd = malloc(allocSize+1);
-                        snprintf(cmd, allocSize+1, "%s %s", temp_dir, buf);
-
-                        // Exit ncurses mode and execute the script
+                        // Exit ncurses mode to execute the script
                         endwin();
-                        system(cmd);
 
-                        // Free Memory
-                        free(cmd);
+                        // Create a child process to execute the script
+                        pid = fork();
+                        if( pid == 0 )
+                        {
+                            execl(temp_dir, scripts[option], buf, (char *)0);
+                            exit(1);
+                        }
+                        else
+                        {
+                            int status;
+                            waitpid(pid, &status, 0);
+                        }
+
+                        // Free Memory and restart curses mode
                         free(buf);
                         refresh();
                     }
@@ -1765,7 +1928,7 @@ int main(int argc, char* argv[])
                 }
                 break;
 
-                // Clear Preview Window
+            // Clear Preview Window
             case KEY_RELOAD:
                 clearFlag = 1;
                 break;
@@ -1796,6 +1959,9 @@ int main(int argc, char* argv[])
     free(editor);
     free(dir);
     free(temp_dir);
+
+    // Clear Image Preview (If Present)
+    clearImg();
 
     // End curses mode
     endwin();
