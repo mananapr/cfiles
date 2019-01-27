@@ -25,6 +25,8 @@ and then run,
 
 to install.
 
+Arch Linux can use the [AUR](https://aur.archlinux.org/packages/cfiles) package.
+
 ## Keybindings
 | Key | Function |
 |:---:| --- |
