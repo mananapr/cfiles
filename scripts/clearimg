@@ -1,7 +1,7 @@
 #!/bin/bash
 
 W3MIMGDISPLAY="/usr/lib/w3m/w3mimgdisplay"
-FONTH=4 # Size of one terminal row
+FONTH=8 # Size of one terminal row
 FONTW=6 # Size of one terminal column
 
 X=$1
@@ -12,5 +12,5 @@ LINES=$4
 x=$((FONTW * X))
 y=$((FONTH * Y))
 
-erase="6;$x;$y;$(( FONTW*COLUMNS ));$(( FONTH*LINES ))\n3;"
+erase="6;$x;$((y-8));$(( FONTW*COLUMNS ));$(( FONTH*LINES ))\n3;"
 echo -e "$erase" | $W3MIMGDISPLAY

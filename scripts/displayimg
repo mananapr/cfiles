@@ -3,7 +3,7 @@
 # Based on script by z3bra -- 2014-01-21
 
 W3MIMGDISPLAY="/usr/lib/w3m/w3mimgdisplay"
-FONTH=4 # Size of one terminal row
+FONTH=12 # Size of one terminal row
 FONTW=6 # Size of one terminal column
 
 X=$1
@@ -33,6 +33,6 @@ if [ "$height" -gt "$max_height" ]; then
     height=$max_height
 fi
 
-w3m_command="0;1;$x;$y;$width;$height;;;;;$FILENAME\n4;\n3;"
+w3m_command="0;1;$x;$((y-15));$width;$height;;;;;$FILENAME\n4;\n3;"
 
 echo -e "$w3m_command" | $W3MIMGDISPLAY
