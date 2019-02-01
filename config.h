@@ -13,7 +13,7 @@
 #define SHOW_BORDERS 1
 
 // Program used to open non-text file (Eg: `xdg-open` or `thunar`)
-#define FILE_OPENER "/usr/bin/xdg-open"
+#define FILE_OPENER "xdg-open"
 
 // Display Image Script
 #define DISPLAYIMG "/usr/local/bin/displayimg_uberzug"
@@ -108,6 +108,9 @@
 
 // External Scripts Key
 #define KEY_SCRIPT 'p'
+
+// View preview
+#define KEY_PREVIEW 'I'
 
 // Reload
 #define KEY_RELOAD 'r'

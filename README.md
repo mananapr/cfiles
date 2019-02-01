@@ -11,7 +11,6 @@ minimal.
 - `fzf` for searching
 - `w3mimgdisplay` or `Überzug` for image previews
 - `mediainfo` for viewing media info and file sizes
-- `sed` for removing a particular selection
 - `atool` for archive previews
 
 ## Compiling and Installation
@@ -49,6 +48,7 @@ Arch Linux users can use the [AUR](https://aur.archlinux.org/packages/cfiles) pa
 | <kbd>dd</kbd> | Move files from selection list to trash |
 | <kbd>dD</kbd> | Remove selected files |
 | <kbd>i</kbd> | View mediainfo and general info |
+| <kbd>I</kbd> | View preview |
 | <kbd>.</kbd> | Toggle hidden files |
 | <kbd>'</kbd> | View/Goto bookmarks |
 | <kbd>m</kbd> | Add bookmark |
@@ -72,8 +72,7 @@ or press `m` in `cfiles` to add new bookmarks.
 If `$XDG_CACHE_HOME` is not set, then `$HOME/.cache` is used.
 
 ## Opening Files
-You can set `FILE_OPENER` in `config.h` to specify your file opening program. It is set to use `xdg-open` by default but you can change it to anything like `thunar`. macOS users need to set it to `/usr/bin/open`.
-Note that you have to specify the full path of the binary.
+You can set `FILE_OPENER` in `config.h` to specify your file opening program. It is set to use `xdg-open` by default but you can change it to anything like `thunar`. macOS users need to set it to `open`.
 
 ## Image Previews
 You can either go with `w3mimgdisplay` or `Überzug` ([link](https://github.com/seebye/ueberzug)) for image previews.
