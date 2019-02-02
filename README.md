@@ -6,7 +6,7 @@ minimal.
 ![screenshot](cf.png)
 
 ## Dependencies
-- `ncurses`
+- `ncursesw`
 - `cp`and `mv` for copying and moving
 - `fzf` for searching
 - `w3mimgdisplay` or `Überzug` for image previews

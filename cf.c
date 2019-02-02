@@ -121,7 +121,7 @@ int backFlag = 0;
 int hiddenFlag = SHOW_HIDDEN;
 
 // Stores the last token in the path. For eg, it will store 'a' is path is /b/a
-char *last;
+char *last = NULL;
 
 // Shows current directory
 WINDOW *current_win;
@@ -2129,6 +2129,8 @@ int main(int argc, char* argv[])
     free(editor);
     free(dir);
     free(temp_dir);
+    if(last != NULL)
+        free(last);
 
     // Clear Image Preview (If Present)
     clearImg();
