@@ -2075,6 +2075,7 @@ int main(int argc, char* argv[])
                         pid = fork();
                         if( pid == 0 )
                         {
+                            chdir(dir);
                             execl(temp_dir, scripts[option], buf, (char *)0);
                             exit(1);
                         }
