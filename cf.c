@@ -280,7 +280,7 @@ void getLastToken(char *tokenizer)
     pch = strtok(temp_dir, tokenizer);
     while (pch != NULL)
     {
-        last = pch;
+        last = strdup(pch);
         pch = strtok(NULL,tokenizer);
     }
 }
