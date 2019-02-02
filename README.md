@@ -137,5 +137,5 @@ a similar UI.
 - [x] Remove hardcoded paths
 - [x] Use dynamic allocation wherever static arrays are used
 - [x] Update README section about Image previews and add about `Uberzug`
-- [ ] Replace `system()` by safer functions
+- [x] Replace `system()` by safer functions
 - [ ] Refactor Code
