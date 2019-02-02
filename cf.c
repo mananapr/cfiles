@@ -280,6 +280,7 @@ void getLastToken(char *tokenizer)
     pch = strtok(temp_dir, tokenizer);
     while (pch != NULL)
     {
+        free(last);
         last = strdup(pch);
         pch = strtok(NULL,tokenizer);
     }
@@ -1839,6 +1840,8 @@ int main(int argc, char* argv[])
 
             // Bulk Rename
             case KEY_RENAME:
+                // Clear Image if Exists
+                clearImg();
                 if( access( clipboard_path, F_OK ) == -1 )
                 {
                     // Reallocate `temp_dir` to store full path of selected file
