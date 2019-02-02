@@ -531,6 +531,8 @@ void openFile(char *filepath)
     pid = fork();
     if (pid == 0)
     {
+        int null_fd = open("/dev/null", O_WRONLY);
+        dup2(null_fd,2);
         execlp(FILE_OPENER, FILE_OPENER, filepath, (char *)0);
         exit(1);
     }
@@ -1434,7 +1436,11 @@ int main(int argc, char* argv[])
 
         // Check if selection is -1
         if(selection == -1)
+        {
             selection = 0;
+            directories[0] = malloc(6);
+            snprintf(directories[0],6,"%s","Empty");
+        }
         // Store name of selected file
         snprintf(selected_file,NAME_MAX,"%s",directories[selection]);
 
@@ -2100,6 +2106,8 @@ int main(int argc, char* argv[])
         {
             free(directories[i]);
         }
+        if(len <= 0)
+            free(directories[0]);
         free(next_directories);
 
     } while( ch != 'q');
