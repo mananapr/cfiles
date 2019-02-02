@@ -491,14 +491,17 @@ void getMIME(char *filepath, char mime[50])
     {
         int status;
         waitpid(pid,&status,0);
+        // Open preview file to read output
+        fp = fopen(temp_dir, "r");
+        if(fp == NULL)
+        {
+            return;
+        }
+        while(fgets(buf,50,(FILE *)fp) != NULL){}
+        fclose(fp);
+        strtok(buf,"/");
+        snprintf(mime,50,"%s",buf);
     }
-
-    // Open preview file to read output
-    fp = fopen(temp_dir, "r");
-    while(fgets(buf,50,fp) != NULL){}
-    fclose(fp);
-    strtok(buf,"/");
-    snprintf(mime,50,"%s",buf);
 }
 
 
@@ -563,6 +566,7 @@ int checkClipboard(char *filepath)
         if(strcmp(temp,buf) == 0)
         {
             free(temp);
+            fclose(f);
             return 1;
         }
     }
@@ -1485,6 +1489,7 @@ int main(int argc, char* argv[])
         if(len != 0)
         {
             if(len_preview != -1)
+            {
                 for( i=0; i<len_preview; i++ )
                 {
                     wmove(preview_win,i+1,2);
@@ -1505,6 +1510,7 @@ int main(int argc, char* argv[])
                     }
                     wprintw(preview_win, "%.*s\n", maxx/2 - 3, next_directories[i]);
                 }
+            }
 
             // Get Preview of File
             else
