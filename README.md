@@ -25,6 +25,14 @@ minimal.
 - `atool` for archive previews
 
 ## Compiling and Installation
+#### Arch Linux
+Arch Linux users can use the [AUR](https://aur.archlinux.org/packages/cfiles) package.
+
+#### macOS
+macOS users can use [brew](https://github.com/mananapr/homebrew-cfiles)
+
+
+#### Others
 To compile, run
 
     make
@@ -34,8 +42,6 @@ and then run,
     sudo make install
 
 to install.
-
-Arch Linux users can use the [AUR](https://aur.archlinux.org/packages/cfiles) package.
 
 ## Keybindings
 | Key | Function |
