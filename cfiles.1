@@ -1,0 +1,89 @@
+.\" Manpage for cfiles.
+.\" Contact mananapr@gmail.com to correct errors or typos.
+.
+.TH CFILES "1" "January 2019" "cfiles" "User Manual"
+.SH NAME
+cfiles
+.SH SYNOPSIS
+.B cfiles
+.SH DESCRIPTION
+A ncurses file manager written in C
+.SH Keybindings
+.
+.nf
+h: go to parent directory
+l: go to child directory/open file
+j: scroll down
+k: scroll up
+
+g: go to top
+G: go to end
+H: go to top of current view
+M: go to middle of current view
+L: go to bottom of current view
+
+S: open shell in current directory
+
+space: add/remove selection
+tab: view selection list
+e: edit selection list
+u: empty selection list
+
+y: copy files from selection list
+v: move files from selection list
+a: rename files from selection list
+
+dd: move files to trash
+dD: delete files
+
+i: view mediainfo
+I: view full preview in pager
+
+\[char46]: toggle hidden files
+\': view bookmarks
+m: add bookmark
+p: run script
+
+r: reload
+q: quit
+.
+.fi
+.
+.SH Customization
+Keybindings and colors can be customized in
+.B config.h
+.br
+User scripts are read from
+.B XDG_CACHE_HOME/cfiles/scripts
+directory
+.
+.SH Image Previews
+.B cfiles
+supports
+.B w3mimgdisplay
+and
+.B Überzug
+for displaying images in terminal.
+
+
+.B 1. Überzug
+.br
+Set
+.B DISPLAYIMG
+and
+.B CLEARIMG
+to the paths of displayimg_uberzug and clearimg_uberzug scripts respectively in
+.B config.h
+
+.B 2. w3mimgdisplay
+.br
+Set
+.B DISPLAYIMG
+and
+.B CLEARIMG
+to the paths of displayimg and clearimg scripts respectively in
+.B config.h
+.br
+You may have to edit the scripts a little in this case about which you can read at https://wiki.vifm.info/index.php/How_to_preview_images
+.SH AUTHOR
+Manan Singh (mananapr@gmail.com)
