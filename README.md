@@ -3,6 +3,7 @@
 <p align="center">
 <a href="https://github.com/mananapr/cfiles/releases/latest"><img src="https://img.shields.io/badge/release-v1.2-blue.svg" alt="Latest release" /></a>
 <a href="https://aur.archlinux.org/packages/cfiles/"><img src="https://img.shields.io/badge/aur-v1.2-blue.svg" alt="Arch Linux" /></a>
+<a href="https://github.com/mananapr/homebrew-cfiles"><img src="https://img.shields.io/badge/homebrew-v1.2-blue.svg" alt="Homebrew" /></a>
 </p>
 
 <p align="center">
