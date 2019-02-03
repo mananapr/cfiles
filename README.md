@@ -1,5 +1,15 @@
 # cfiles
-`cfiles` is a work in progress terminal file manager with vim like keybindings, written in C using the ncurses
+
+<p align="center">
+<a href="https://github.com/mananapr/cfiles/releases/latest"><img src="https://img.shields.io/badge/release-v1.2-blue.svg" alt="Latest release" /></a>
+<a href="https://aur.archlinux.org/packages/cfiles/"><img src="https://img.shields.io/badge/aur-v1.2-blue.svg" alt="Arch Linux" /></a>
+</p>
+
+<p align="center">
+<a href="https://github.com/mananapr/cfiles/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="License" /></a>
+</p>
+
+`cfiles` is a terminal file manager with vim like keybindings, written in C using the ncurses
 library. It aims to provide an interface like [ranger](https://github.com/ranger/ranger) while being lightweight, fast and
 minimal.
 
