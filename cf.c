@@ -1549,13 +1549,13 @@ int main(int argc, char* argv[])
                 if(wgetch(current_win) == '[') {
                     char arrow = wgetch(current_win);
                     if(arrow == 'A') {
-                        goto ARROR_UP;
+                        goto ARROW_UP;
                     } else if(arrow == 'B') {
-                        goto ARROR_DOWN;
+                        goto ARROW_DOWN;
                     } else if(arrow == 'C') {
-                        goto ARROR_RIGHT;
+                        goto ARROW_RIGHT;
                     } else if(arrow == 'D') {
-                        goto ARROR_LEFT;
+                        goto ARROW_LEFT;
                     }
                 }
                 break;
