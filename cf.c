@@ -1545,8 +1545,23 @@ int main(int argc, char* argv[])
 
         // Keybindings
         switch( ch = wgetch(current_win) ) {
+            case '\33':
+                if(wgetch(current_win) == '[') {
+                    char arrow = wgetch(current_win);
+                    if(arrow == 'A') {
+                        goto ARROR_UP;
+                    } else if(arrow == 'B') {
+                        goto ARROR_DOWN;
+                    } else if(arrow == 'C') {
+                        goto ARROR_RIGHT;
+                    } else if(arrow == 'D') {
+                        goto ARROR_LEFT;
+                    }
+                }
+                break;
             // Go up
             case 'k':
+ARROW_UP:
                 selection--;
                 selection = ( selection < 0 ) ? 0 : selection;
                 // Scrolling
@@ -1565,6 +1580,7 @@ int main(int argc, char* argv[])
 
             // Go down
             case 'j':
+ARROW_DOWN:
                 selection++;
                 selection = ( selection > len-1 ) ? len-1 : selection;
                 // Scrolling
@@ -1581,6 +1597,7 @@ int main(int argc, char* argv[])
 
             // Go to child directory or open file
             case 'l':
+ARROW_RIGHT:
                 if(len_preview != -1)
                 {
                     free(dir);
@@ -1600,6 +1617,7 @@ int main(int argc, char* argv[])
 
             // Go up a directory
             case 'h':
+ARROW_LEFT:
                 // Reallocate `temp_dir` and Copy present directory to temp_dir to work with strtok()
                 free(temp_dir);
                 allocSize = snprintf(NULL,0,"%s",dir);
