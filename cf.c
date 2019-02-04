@@ -1169,6 +1169,7 @@ void init_windows()
     current_win = create_newwin(maxy, maxx/2+2, 0, 0);
     preview_win = create_newwin(maxy, maxx/2 -1, 0, maxx/2 + 1);
     status_win = create_newwin(2, maxx, maxy, 0);
+    keypad(current_win, TRUE);
 }
 
 
@@ -1444,7 +1445,7 @@ int main(int argc, char* argv[])
     curses_init();
 
     // For Storing user keypress
-    char ch;
+    int ch;
 
     // Main Loop
     do
@@ -1636,23 +1637,28 @@ int main(int argc, char* argv[])
         char confirm;
 
         // Keybindings
-        switch( ch = wgetch(current_win) ) {
+        switch( ch = wgetch(current_win) )
+        {
             // Go up
+            case KEY_UP:
             case 'k':
                 scrollUp();
                 break;
 
             // Go down
+            case KEY_DOWN:
             case 'j':
                 scrollDown();
                 break;
 
             // Go to child directory or open file
+            case KEY_RIGHT:
             case 'l':
                 goForward();
                 break;
 
             // Go up a directory
+            case KEY_LEFT:
             case 'h':
                 goBack();
                 break;
