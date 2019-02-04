@@ -1341,6 +1341,98 @@ void handleFlags(char** directories)
 }
 
 
+/*
+    Scrolls Up
+*/
+void scrollUp()
+{
+    selection--;
+    selection = ( selection < 0 ) ? 0 : selection;
+    // Scrolling
+    if(len >= maxy-1)
+        if(selection <= start + maxy/2)
+        {
+            if(start == 0)
+                wclear(current_win);
+            else
+            {
+                start--;
+                wclear(current_win);
+            }
+        }
+}
+
+
+/*
+    Scrolls Down
+*/
+void scrollDown()
+{
+    selection++;
+    selection = ( selection > len-1 ) ? len-1 : selection;
+    // Scrolling
+    if(len >= maxy-1)
+        if(selection - 1 > maxy/2)
+        {
+            if(start + maxy - 2 != len)
+            {
+                start++;
+                wclear(current_win);
+            }
+        }
+}
+
+
+/*
+    Goes to child directory or opens a file
+*/
+void goForward()
+{
+    if(len_preview != -1)
+    {
+        free(dir);
+        allocSize = snprintf(NULL,0,"%s",next_dir);
+        dir = malloc(allocSize+1);
+        snprintf(dir,allocSize+1,"%s",next_dir);
+        selection = 0;
+        start = 0;
+    }
+    else
+    {
+        // Open file
+        openFile(next_dir);
+        clearFlag = 1;
+    }
+}
+
+
+/*
+    Goes to parent directory
+*/
+void goBack()
+{
+    // Reallocate `temp_dir` and Copy present directory to temp_dir to work with strtok()
+    free(temp_dir);
+    allocSize = snprintf(NULL,0,"%s",dir);
+    temp_dir = malloc(allocSize+1);
+    snprintf(temp_dir,allocSize+1,"%s",dir);
+
+    // Reallocate `dir` and copy `prev_dir` to `dir`
+    free(dir);
+    allocSize = snprintf(NULL,0,"%s",prev_dir);
+    dir = malloc(allocSize+1);
+    snprintf(dir,allocSize+1,"%s",prev_dir);
+
+    // Set appropriate flags
+    selection = 0;
+    start = 0;
+    backFlag = 1;
+
+    // Get the last token in `temp_dir` and store it in `last`
+    getLastToken("/");
+}
+
+
 ///////////////////
 // MAIN FUNCTION //
 ///////////////////
@@ -1547,78 +1639,22 @@ int main(int argc, char* argv[])
         switch( ch = wgetch(current_win) ) {
             // Go up
             case 'k':
-                selection--;
-                selection = ( selection < 0 ) ? 0 : selection;
-                // Scrolling
-                if(len >= maxy-1)
-                    if(selection <= start + maxy/2)
-                    {
-                        if(start == 0)
-                            wclear(current_win);
-                        else
-                        {
-                            start--;
-                            wclear(current_win);
-                        }
-                    }
+                scrollUp();
                 break;
 
             // Go down
             case 'j':
-                selection++;
-                selection = ( selection > len-1 ) ? len-1 : selection;
-                // Scrolling
-                if(len >= maxy-1)
-                    if(selection - 1 > maxy/2)
-                    {
-                        if(start + maxy - 2 != len)
-                        {
-                            start++;
-                            wclear(current_win);
-                        }
-                    }
+                scrollDown();
                 break;
 
             // Go to child directory or open file
             case 'l':
-                if(len_preview != -1)
-                {
-                    free(dir);
-                    allocSize = snprintf(NULL,0,"%s",next_dir);
-                    dir = malloc(allocSize+1);
-                    snprintf(dir,allocSize+1,"%s",next_dir);
-                    selection = 0;
-                    start = 0;
-                }
-                else
-                {
-                    // Open file
-                    openFile(next_dir);
-                    clearFlag = 1;
-                }
+                goForward();
                 break;
 
             // Go up a directory
             case 'h':
-                // Reallocate `temp_dir` and Copy present directory to temp_dir to work with strtok()
-                free(temp_dir);
-                allocSize = snprintf(NULL,0,"%s",dir);
-                temp_dir = malloc(allocSize+1);
-                snprintf(temp_dir,allocSize+1,"%s",dir);
-
-                // Reallocate `dir` and copy `prev_dir` to `dir`
-                free(dir);
-                allocSize = snprintf(NULL,0,"%s",prev_dir);
-                dir = malloc(allocSize+1);
-                snprintf(dir,allocSize+1,"%s",prev_dir);
-
-                // Set appropriate flags
-                selection = 0;
-                start = 0;
-                backFlag = 1;
-
-                // Get the last token in `temp_dir` and store it in `last`
-                getLastToken("/");
+                goBack();
                 break;
 
             // Goto start
