@@ -7,7 +7,7 @@ PROG = cfiles
 DEST = /usr/local/bin
 
 all: $(OBJS)
-	$(CC) $(CFLAGS) $(LIBS) $(OBJS) -o $(PROG)
+	$(CC) $(CFLAGS) $(OBJS) -o $(PROG) $(LIBS)
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
