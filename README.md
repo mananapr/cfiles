@@ -103,6 +103,7 @@ To use `Überzug` for image previews, set `DISPLAYIMG` and `CLEARIMG` in `config
   * Cons
     1. Can't generate previews for mp3 album arts
     2. Slower scrolling speed when compared to `w3mimgdisplay`
+    3. Non functional scrolling with arrow keys
 
 I personally use `Überzug` because I don't scroll too fast in my image directories. If I am looking for a specific file I just use `fzf` to directly go to it.
 
