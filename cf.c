@@ -484,7 +484,9 @@ void getMIME(char *filepath, char mime[50])
     if( pid == 0 )
     {
         fd = open(temp_dir, O_CREAT | O_WRONLY, 0755);
+        int null_fd = open("/dev/null", O_WRONLY);
         dup2(fd, 1);
+        dup2(null_fd, 2);
         execlp("xdg-mime","xdg-mime","query","filetype",filepath,(char *)0);
         exit(1);
     }
@@ -892,7 +894,7 @@ void getParentPath(char *path)
     p = strrchr(path,'/');
     path[p-path] = '\0';
     // Parent directory is root
-    if(path[0] != '/')
+    if(path[0] == '\0')
     {
         path[0] = '/';
         path[1] = '\0';
@@ -1184,7 +1186,10 @@ void displayStatus()
     wprintw(status_win, " %s", dir);
     wattroff(status_win, COLOR_PAIR(2));
     wattron(status_win, COLOR_PAIR(3));
-    wprintw(status_win, "/%s", selected_file);
+    if(strcasecmp(dir,"/") == 0)
+        wprintw(status_win, "%s", selected_file);
+    else
+        wprintw(status_win, "/%s", selected_file);
     wattroff(status_win, COLOR_PAIR(3));
     wrefresh(status_win);
 }
@@ -1554,7 +1559,10 @@ int main(int argc, char* argv[])
         // Get path of child directory
         allocSize = snprintf(NULL,0,"%s/%s", dir, directories[selection]);
         next_dir = malloc(allocSize+1);
-        snprintf(next_dir,allocSize+1,"%s/%s", dir, directories[selection]);
+        if(strcasecmp(dir,"/") == 0)
+            snprintf(next_dir,allocSize+1,"%s%s", dir, directories[selection]);
+        else
+            snprintf(next_dir,allocSize+1,"%s/%s", dir, directories[selection]);
 
         // Stores number of files in the child directory
         len_preview = getNumberofFiles(next_dir);
@@ -1732,6 +1740,7 @@ int main(int argc, char* argv[])
 
                 // Execute fzf command and store output in buf
                 buf = malloc(PATH_MAX);
+                memset(buf, '\0', PATH_MAX);
                 fp = fopen(temp_dir, "r");
                 while(fgets(buf,PATH_MAX,fp) != NULL){}
                 fclose(fp);
@@ -1907,6 +1916,7 @@ int main(int argc, char* argv[])
                     removeClipboard(temp_dir);
                 else
                     writeClipboard(temp_dir);
+                scrollDown();
                 break;
 
             // Empty Clipboard
@@ -1926,6 +1936,7 @@ int main(int argc, char* argv[])
 
             // Moves clipboard contents to trash
             case KEY_REMOVEMENU:
+                clearImg();
                 if( fileExists(clipboard_path) == 1 )
                 {
                     keys_win = create_newwin(3, maxx, maxy-3, 0);
