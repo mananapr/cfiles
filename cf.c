@@ -120,6 +120,9 @@ int backFlag = 0;
 // Flag to display hidden files
 int hiddenFlag = SHOW_HIDDEN;
 
+// Flag to display borders
+int bordersFlag = SHOW_BORDERS;
+
 // Stores the last token in the path. For eg, it will store 'a' is path is /b/a
 char *last = NULL;
 
@@ -1247,7 +1250,7 @@ void displayAlert(char *message)
 */
 void refreshWindows()
 {
-    if(SHOW_BORDERS == 1)
+    if(bordersFlag == 1)
     {
         box(current_win,0,0);
         box(preview_win,0,0);
@@ -2185,6 +2188,14 @@ int main(int argc, char* argv[])
                         free(scripts[i]);
                     }
                 }
+                break;
+
+            // Toggle Borders
+            case KEY_TOGGLEBORDERS:
+                if(bordersFlag == 1)
+                    bordersFlag = 0;
+                else
+                    bordersFlag = 1;
                 break;
 
             // Clear Preview Window

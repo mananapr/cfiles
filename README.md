@@ -67,6 +67,7 @@ to install.
 | <kbd>i</kbd> | View mediainfo and general info |
 | <kbd>I</kbd> | View preview |
 | <kbd>.</kbd> | Toggle hidden files |
+| <kbd>b</kbd> | Toggle borders |
 | <kbd>'</kbd> | View/Goto bookmarks |
 | <kbd>m</kbd> | Add bookmark |
 | <kbd>p</kbd> | Run external script |

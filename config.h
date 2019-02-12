@@ -27,7 +27,7 @@
 */
 
 // Shell Color Number to use for directories
-#define DIR_COLOR 2
+#define DIR_COLOR 4
 
 // Shell Color Number to use for file count which is displayed in the statusbar
 #define STATUS_FILECOUNT_COLOR 1
@@ -97,8 +97,11 @@
 // Open Shell
 #define KEY_SHELL 'S'
 
-// Toggle Hiddem Files
+// Toggle Hidden Files
 #define KEY_TOGGLEHIDE '.'
+
+// Toggle Borders
+#define KEY_TOGGLEBORDERS 'b'
 
 // Bookmarks Key
 #define KEY_BOOKMARK '\''
