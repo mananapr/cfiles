@@ -147,7 +147,7 @@ int startx, starty, maxx, maxy;
    Initializes the program
    Sets the relevant file paths
 */
-void init()
+void init(int argc, char* argv[])
 {
     // Set Locale (For wide characters)
     setlocale(LC_ALL, "");
@@ -229,6 +229,40 @@ void init()
     else
     {
         printf("Couldn't open current directory");
+        exit(1);
+    }
+
+    // Path of directory was specified
+    if(argc == 2)
+    {
+        // Absolute path
+        if(argv[1][0] == '/')
+        {
+            free(dir);
+            allocSize = snprintf(NULL, 0, "%s", argv[1]);
+            dir = malloc(allocSize+1);
+            snprintf(dir,allocSize+1,"%s", argv[1]);
+        }
+        // Relative path
+        else
+        {
+            char *temp;
+            int temp_size;
+            temp_size = snprintf(NULL, 0, "%s", argv[1]);
+            allocSize = snprintf(NULL, 0, "%s", dir);
+            temp = malloc(temp_size + allocSize + 2);
+            snprintf(temp, temp_size + allocSize + 2, "%s/%s", dir, argv[1]);
+            free(dir);
+            dir = malloc(temp_size + allocSize + 2);
+            snprintf(dir, temp_size + allocSize + 2, "%s", temp);
+            free(temp);
+        }
+    }
+
+    // Excess arguments given
+    else if(argc > 2)
+    {
+        printf("Incorrect Usage!\n");
         exit(1);
     }
 }
@@ -1446,7 +1480,7 @@ void goBack()
 int main(int argc, char* argv[])
 {
     // Initialization
-    init();
+    init(argc, argv);
     curses_init();
 
     // For Storing user keypress
@@ -1827,6 +1861,7 @@ int main(int argc, char* argv[])
 
                 // Allocate Memory to `buf` to store output of command
                 buf = malloc(PATH_MAX);
+                memset(buf, '\0', PATH_MAX);
                 fp = fopen(temp_dir, "r");
                 while(fgets(buf,PATH_MAX,fp) != NULL){}
                 fclose(fp);
