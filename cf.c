@@ -999,16 +999,37 @@ int getFiles(char* directory, char* target[])
 
 
 /*
+    Gets write permissions
+    Returns 1 is `path` is writable
+*/
+int getWritePermissions(char *path)
+{
+    if( access(path, W_OK) == 0 )
+        return 1;
+    else
+        return 0;
+}
+
+
+/*
    Copy files in clipboard to `present_dir`
 */
 void copyFiles(char *present_dir)
 {
     FILE *f = fopen(clipboard_path, "r");
     char buf[PATH_MAX];
+    int flag;
     if(f == NULL)
     {
         return;
     }
+
+    // Check if `dir` is writable
+    if(getWritePermissions(dir) == 1)
+        flag = 0;
+    else
+        flag = 1;
+
     endwin();
     while(fgets(buf, PATH_MAX, (FILE*) f))
     {
@@ -1017,7 +1038,10 @@ void copyFiles(char *present_dir)
         pid_t pid = fork();
         if(pid == 0)
         {
-            execlp("cp", "cp", "-r", "-v", buf, present_dir, (char *)0);
+            if(flag == 0)
+                execlp("cp", "cp", "-r", "-v", buf, present_dir, (char *)0);
+            else
+                execlp("sudo", "sudo", "cp", "-r", "-v", buf, present_dir, (char *)0);
             exit(1);
         }
         else
@@ -1037,6 +1061,7 @@ void removeFiles()
 {
     FILE *f = fopen(clipboard_path, "r");
     char buf[PATH_MAX];
+    int flag;
     if(f == NULL)
     {
         return;
@@ -1045,11 +1070,18 @@ void removeFiles()
     while(fgets(buf, PATH_MAX, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
+        if( getWritePermissions(buf) == 1 )
+            flag = 0;
+        else
+            flag = 1;
         // Create a child process to remove file
         pid_t pid = fork();
         if(pid == 0)
         {
-            execlp("rm", "rm", "-r", "-v", buf, (char *)0);
+            if( flag == 0 )
+                execlp("rm", "rm", "-r", "-f", "-v", buf, (char *)0);
+            else
+                execlp("sudo", "sudo", "rm", "-r", "-f", "-v", buf, (char *)0);
             exit(1);
         }
         else
@@ -1172,10 +1204,17 @@ void moveFiles(char *present_dir)
 {
     FILE *f = fopen(clipboard_path, "r");
     char buf[PATH_MAX];
+    int flag;
     if(f == NULL)
     {
         return;
     }
+
+    if( getWritePermissions(dir) == 1 )
+        flag = 0;
+    else
+        flag = 1;
+
     endwin();
     while(fgets(buf, PATH_MAX, (FILE*) f))
     {
@@ -1185,7 +1224,10 @@ void moveFiles(char *present_dir)
         pid_t pid = fork();
         if(pid == 0)
         {
-            execlp("mv", "mv", "-v", buf, present_dir, (char *)0);
+            if(flag == 0)
+                execlp("mv", "mv", "-v", buf, present_dir, (char *)0);
+            else
+                execlp("sudo", "sudo", "mv", "-v", buf, present_dir, (char *)0);
             exit(1);
         }
         else
@@ -1548,6 +1590,8 @@ int main(int argc, char* argv[])
         int t = 0;
         for( i=start; i<len; i++ )
         {
+            if(t == maxy -1)
+                break;
             free(temp_dir);
             allocSize = snprintf(NULL,0,"%s/%s",dir,directories[i]);
             temp_dir = malloc(allocSize + 1);
@@ -1570,7 +1614,7 @@ int main(int argc, char* argv[])
             if( checkClipboard(temp_dir) == 0)
                 wprintw(current_win, "%.*s\n", maxx/2+1, directories[i]);
             else
-                wprintw(current_win, "* %.*s\n", maxx/2-1, directories[i]);
+                wprintw(current_win, "* %.*s\n", maxx/2-2, directories[i]);
             t++;
         }
 
@@ -1631,6 +1675,8 @@ int main(int argc, char* argv[])
             {
                 for( i=0; i<len_preview; i++ )
                 {
+                    if(i == maxy - 1)
+                        break;
                     wmove(preview_win,i+1,2);
                     // Allocate `temp_dir` and store path of file in `next_dir`
                     free(temp_dir);
