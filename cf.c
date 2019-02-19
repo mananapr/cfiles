@@ -375,6 +375,24 @@ void displayBookmarks()
 
 
 /*
+    Replaces `a` with `b` in `str`
+*/
+char* replace(char* str, char* a, char* b)
+{
+    int len  = strlen(str);
+    int lena = strlen(a);
+    int lenb = strlen(b);
+    for (char* p = str; (p = strstr(p, a)); ++p)
+    {
+        if (lena != lenb) // shift end as needed
+            memmove(p+lenb, p+lena, len - (p - str) + lenb);
+        memcpy(p, b, lenb);
+    }
+    return str;
+}
+
+
+/*
    Opens the bookmark denoted by `secondKey`
 */
 void openBookmarkDir(char secondKey)
@@ -392,6 +410,7 @@ void openBookmarkDir(char secondKey)
             temp_dir = malloc(allocSize+1);
             strncpy(temp_dir, buf + 2, strlen(buf)-2);
             strtok(temp_dir,"\n");
+            replace(temp_dir,"//","\n");
             if( fileExists(temp_dir) == 1 )
             {
                 // Reallocate `dir`
@@ -443,7 +462,11 @@ int bookmarkExists(char bookmark)
 void addBookmark(char bookmark, char *path)
 {
     FILE *fp = fopen(bookmarks_path, "a+");
-    fprintf(fp,"%c:%s\n", bookmark, path);
+    int allocSize = snprintf(NULL, 0, "%s", path);
+    path = realloc(path, allocSize+2);
+    char *temp = strdup(path);
+    fprintf(fp,"%c:%s\n", bookmark, replace(temp,"\n","//"));
+    free(temp);
     fclose(fp);
 }
 
@@ -600,6 +623,7 @@ int checkClipboard(char *filepath)
         free(temp);
         return 0;
     }
+    replace(temp,"\n","//");
     while(fgets(buf, PATH_MAX, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
@@ -1034,6 +1058,7 @@ void copyFiles(char *present_dir)
     while(fgets(buf, PATH_MAX, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
+        replace(buf,"//","\n");
         // Create a child process to copy file
         pid_t pid = fork();
         if(pid == 0)
@@ -1070,6 +1095,7 @@ void removeFiles()
     while(fgets(buf, PATH_MAX, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
+        replace(buf,"//","\n");
         if( getWritePermissions(buf) == 1 )
             flag = 0;
         else
@@ -1169,6 +1195,9 @@ void renameFiles()
                 if(buf2[strlen(buf2)-1] == '\n')
                     buf2[strlen(buf2)-1] = '\0';
 
+                replace(buf2,"//","\n");
+                replace(buf,"//","\n");
+
                 // Create a child process to rename
                 pid = fork();
                 if( pid == 0 )
@@ -1219,7 +1248,7 @@ void moveFiles(char *present_dir)
     while(fgets(buf, PATH_MAX, (FILE*) f))
     {
         buf[strlen(buf)-1] = '\0';
-
+        replace(buf,"//","\n");
         // Create a child process to move file
         pid_t pid = fork();
         if(pid == 0)
@@ -1984,7 +2013,9 @@ int main(int argc, char* argv[])
                     allocSize = snprintf(NULL,0,"%s/%s",dir,directories[selection]);
                     temp_dir = malloc(allocSize+1);
                     snprintf(temp_dir,allocSize+1,"%s/%s",dir,directories[selection]);
-                    writeClipboard(temp_dir);
+                    char *temp = strdup(temp_dir);
+                    writeClipboard(replace(temp,"\n","//"));
+                    free(temp);
                 }
                 renameFiles();
                 break;
@@ -1994,12 +2025,14 @@ int main(int argc, char* argv[])
                 // Reallocate `temp_dir` to store full path of selection
                 free(temp_dir);
                 allocSize = snprintf(NULL,0,"%s/%s",dir,directories[selection]);
-                temp_dir = malloc(allocSize+1);
-                snprintf(temp_dir, allocSize+1, "%s/%s", dir, directories[selection]);
+                temp_dir = malloc(allocSize+2);
+                snprintf(temp_dir, allocSize+2, "%s/%s", dir, directories[selection]);
+                char *temp = strdup(temp_dir);
                 if (checkClipboard(temp_dir) == 1)
-                    removeClipboard(temp_dir);
+                    removeClipboard(replace(temp,"\n","//"));
                 else
-                    writeClipboard(temp_dir);
+                    writeClipboard(replace(temp,"\n","//"));
+                free(temp);
                 scrollDown();
                 break;
 
