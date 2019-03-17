@@ -275,7 +275,7 @@ void init(int argc, char* argv[])
         if(dir == NULL)
         {
             printf("%s\n", "Couldn't initialize dir");
-            endwin();
+            exit(1);
         }
         snprintf(dir,allocSize+1,"%s",cwd);
     }
@@ -297,7 +297,7 @@ void init(int argc, char* argv[])
             if(dir == NULL)
             {
                 printf("%s\n", "Couldn't initialize dir");
-                endwin();
+                exit(1);
             }
             // Remove trailing forward slash, if exists, from path
             if(strlen(argv[1]) > 1 && argv[1][strlen(argv[1])-1] == '/')
@@ -318,7 +318,7 @@ void init(int argc, char* argv[])
             if(dir == NULL)
             {
                 printf("%s\n", "Couldn't initialize dir");
-                endwin();
+                exit(1);
             }
             snprintf(dir, temp_size + allocSize + 2, "%s", temp);
             free(temp);
@@ -382,6 +382,12 @@ void getLastToken(char *tokenizer)
     {
         free(last);
         last = strdup(pch);
+        if(last == NULL)
+        {
+            endwin();
+            printf("%s\n", "Couldn't allocate memory!");
+            exit(1);
+        }
         pch = strtok(NULL,tokenizer);
     }
 }
@@ -403,7 +409,7 @@ int getNumberOfBookmarks()
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     int num = 0;
     while(fgets(buf, PATH_MAX, (FILE*) fp))
@@ -434,7 +440,7 @@ void displayBookmarks()
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     wprintw(keys_win,"Key\tPath\n");
     while(fgets(buf, PATH_MAX, (FILE*) fp))
@@ -449,7 +455,7 @@ void displayBookmarks()
         {
             endwin();
             printf("%s\n", "Couldn't allocate memory!");
-            endwin();
+            exit(1);
         }
 
         strncpy(temp_dir, buf + 2, strlen(buf)-2);
@@ -497,7 +503,7 @@ void openBookmarkDir(char secondKey)
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     while(fgets(buf, PATH_MAX, (FILE*) fp))
     {
@@ -511,7 +517,7 @@ void openBookmarkDir(char secondKey)
             {
                 endwin();
                 printf("%s\n", "Couldn't allocate memory!");
-                endwin();
+                exit(1);
             }
             strncpy(temp_dir, buf + 2, strlen(buf)-2);
             strtok(temp_dir,"\n");
@@ -526,7 +532,7 @@ void openBookmarkDir(char secondKey)
                 {
                     endwin();
                     printf("%s\n", "Couldn't allocate memory!");
-                    endwin();
+                    exit(1);
                 }
                 snprintf(dir,allocSize+1,"%s",temp_dir);
             }
@@ -556,7 +562,7 @@ int bookmarkExists(char bookmark)
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     while(fgets(buf, PATH_MAX, (FILE*) fp))
     {
@@ -588,6 +594,12 @@ void addBookmark(char bookmark, char *path)
     int allocSize = snprintf(NULL, 0, "%s", path);
     path = realloc(path, allocSize+2);
     char *temp = strdup(path);
+    if(temp == NULL)
+    {
+        endwin();
+        printf("%s\n", "Couldn't allocate memory!");
+        exit(1);
+    }
     fprintf(fp,"%c:%s\n", bookmark, replace(temp,"\n","//"));
     free(temp);
     fclose(fp);
@@ -621,7 +633,7 @@ int compare (const void * a, const void * b )
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     snprintf(temp_filepath1,PATH_MAX,"%s/%s", sort_dir, *(char **)a);
     allocSize = snprintf(NULL,0,"%s/%s", sort_dir, *(char **)b);
@@ -630,7 +642,7 @@ int compare (const void * a, const void * b )
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     snprintf(temp_filepath2,PATH_MAX,"%s/%s", sort_dir, *(char **)b);
 
@@ -673,7 +685,7 @@ void getMIME(char *filepath, char mime[50])
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     snprintf(temp_dir,allocSize+1,"%s/mime",cache_path);
 
@@ -761,7 +773,7 @@ int checkClipboard(char *filepath)
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     snprintf(temp, allocSize+1, "%s", filepath);
     temp[strlen(temp)]='\0';
@@ -914,7 +926,7 @@ void getTextPreview(char *filepath, int maxy, int maxx)
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     snprintf(preview_path, allocSize+1, "%s/preview", cache_path);
 
@@ -1003,7 +1015,7 @@ void getArchivePreview(char *filepath, int maxy, int maxx)
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     snprintf(preview_path, allocSize+1, "%s/preview", cache_path);
 
@@ -1054,7 +1066,7 @@ void getFileType(char *filepath)
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     snprintf(temp_dir,allocSize+1,"%s", filepath);
     getLastToken(".");
@@ -1097,7 +1109,7 @@ void getVidPreview(char *filepath, int maxy, int maxx)
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     snprintf(temp_dir,allocSize+1,"%s/preview",cache_path);
 
@@ -1204,7 +1216,13 @@ int getFiles(char* directory, char* target[])
             if( pDirent->d_name[0] == '.' )
                 if( hiddenFlag == 0 )
                     continue;
-            target[i++] = strdup(pDirent->d_name);
+            target[i] = strdup(pDirent->d_name);
+            if(target[i++] == NULL)
+            {
+                endwin();
+                printf("%s\n", "Couldn't allocate memory!");
+                exit(1);
+            }
         }
     }
 
@@ -1359,7 +1377,7 @@ void renameFiles()
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     snprintf(cmd,allocSize+1,"%s", editor);
 
@@ -1571,7 +1589,7 @@ void viewPreview()
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     snprintf(preview_path, allocSize+1, "%s/preview", cache_path);
 
@@ -1714,7 +1732,7 @@ void goForward()
         {
             endwin();
             printf("%s\n", "Couldn't allocate memory!");
-            endwin();
+            exit(1);
         }
         snprintf(dir,allocSize+1,"%s",next_dir);
         selection = 0;
@@ -1742,7 +1760,7 @@ void goBack()
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     snprintf(temp_dir,allocSize+1,"%s",dir);
 
@@ -1754,7 +1772,7 @@ void goBack()
     {
         endwin();
         printf("%s\n", "Couldn't allocate memory!");
-        endwin();
+        exit(1);
     }
     snprintf(dir,allocSize+1,"%s",prev_dir);
 
@@ -1818,7 +1836,7 @@ int main(int argc, char* argv[])
         {
             endwin();
             printf("%s\n", "Couldn't allocate memory!");
-            endwin();
+            exit(1);
         }
         strncpy(sort_dir,dir,allocSize+1);
 
@@ -1855,7 +1873,7 @@ int main(int argc, char* argv[])
             {
                 endwin();
                 printf("%s\n", "Couldn't allocate memory!");
-                endwin();
+                exit(1);
             }
             snprintf(temp_dir,allocSize+1,"%s/%s",dir,directories[i]);
             if(i==selection)
@@ -2350,6 +2368,12 @@ int main(int argc, char* argv[])
                     }
                     snprintf(temp_dir,allocSize+1,"%s/%s",dir,directories[selection]);
                     char *temp = strdup(temp_dir);
+                    if(temp == NULL)
+                    {
+                        endwin();
+                        printf("%s\n", "Couldn't allocate memory!");
+                        exit(1);
+                    }
                     writeClipboard(replace(temp,"\n","//"));
                     free(temp);
                 }
@@ -2370,6 +2394,12 @@ int main(int argc, char* argv[])
                 }
                 snprintf(temp_dir, allocSize+2, "%s/%s", dir, directories[selection]);
                 char *temp = strdup(temp_dir);
+                if(temp == NULL)
+                {
+                    endwin();
+                    printf("%s\n", "Couldn't allocate memory!");
+                    exit(1);
+                }
                 if (checkClipboard(temp_dir) == 1)
                     removeClipboard(replace(temp,"\n","//"));
                 else
