@@ -715,8 +715,15 @@ void getMIME(char *filepath, char mime[50])
         }
         while(fgets(buf,50,(FILE *)fp) != NULL){}
         fclose(fp);
-        strtok(buf,"/");
-        snprintf(mime,50,"%s",buf);
+        if(strlen(buf) >= 3 && buf[0] == 'a' && buf[1] == 'p' && buf[2] == 'p')
+        {
+            snprintf(mime, 50, "%s", buf);
+        }
+        else
+        {
+            strtok(buf,"/");
+            snprintf(mime,50,"%s",buf);
+        }
     }
 }
 
@@ -933,7 +940,7 @@ void getTextPreview(char *filepath, int maxy, int maxx)
     // Generate Hex Preview if file is a binary
     char mime[50];
     getMIME(filepath, mime);
-    if(strcasecmp(mime,"application") == 0)
+    if(strcasecmp(mime,"application/x-executable\n") == 0 || strcasecmp(mime,"application/x-sharedlib\n") == 0 || strcasecmp(mime,"application/x-pie-executable\n") == 0)
     {
         remove(preview_path);
         pid_t pid = fork();
