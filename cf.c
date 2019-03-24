@@ -44,6 +44,9 @@ int len_bookmarks=0;
 // To store number of scripts
 int len_scripts=0;
 
+// To store number of selected files
+int selectedFiles = 0;
+
 // Counter variable
 int i = 0;
 
@@ -145,6 +148,40 @@ int startx, starty, maxx, maxy;
 //////////////////////
 // HELPER FUNCTIONS //
 //////////////////////
+
+
+/*
+   Checks if `path` is a file or directory
+*/
+int is_regular_file(const char *path)
+{
+    struct stat path_stat;
+    stat(path, &path_stat);
+    return S_ISREG(path_stat.st_mode);
+}
+
+
+/*
+    Sets value of `selectedFiles`
+*/
+void setSelectionCount()
+{
+    FILE *fp = fopen(clipboard_path, "r");
+    if( fp == NULL )
+    {
+        selectedFiles = 0;
+        return;
+    }
+    char buf[PATH_MAX];
+    int num = 0;
+    while(fgets(buf, PATH_MAX, (FILE*) fp))
+    {
+        num++;
+    }
+    selectedFiles = num;
+    fclose(fp);
+}
+
 
 /*
    Initializes the program
@@ -331,6 +368,12 @@ void init(int argc, char* argv[])
         printf("Incorrect Usage!\n");
         exit(1);
     }
+
+    // Set value of selectedFiles
+    if( SHOW_SELECTION_COUNT == 1 )
+    {
+        setSelectionCount();
+    }
 }
 
 
@@ -346,17 +389,6 @@ void curses_init()
     init_pair(1, DIR_COLOR, 0);
     init_pair(2, STATUS_FILECOUNT_COLOR, 0);
     init_pair(3, STATUS_SELECTED_COLOR, 0);
-}
-
-
-/*
-   Checks if `path` is a file or directory
-*/
-int is_regular_file(const char *path)
-{
-    struct stat path_stat;
-    stat(path, &path_stat);
-    return S_ISREG(path_stat.st_mode);
 }
 
 
@@ -1512,6 +1544,10 @@ void displayStatus()
 {
     wmove(status_win,1,0);
     wattron(status_win, COLOR_PAIR(2));
+    if( SHOW_SELECTION_COUNT == 1 )
+    {
+        wprintw(status_win,"[%d] ", selectedFiles);
+    }
     wprintw(status_win, "(%d/%d)", selection+1, len);
     wprintw(status_win, " %s", dir);
     wattroff(status_win, COLOR_PAIR(2));
@@ -2385,6 +2421,7 @@ int main(int argc, char* argv[])
                     free(temp);
                 }
                 renameFiles();
+                selectedFiles = 0;
                 break;
 
             // Write to clipboard
@@ -2408,9 +2445,15 @@ int main(int argc, char* argv[])
                     exit(1);
                 }
                 if (checkClipboard(temp_dir) == 1)
+                {
                     removeClipboard(replace(temp,"\n","//"));
+                    selectedFiles--;
+                }
                 else
+                {
                     writeClipboard(replace(temp,"\n","//"));
+                    selectedFiles++;
+                }
                 free(temp);
                 scrollDown();
                 break;
@@ -2418,6 +2461,7 @@ int main(int argc, char* argv[])
             // Empty Clipboard
             case KEY_EMPTYSEL:
                 emptyClipboard();
+                selectedFiles = 0;
                 break;
 
             // Copy clipboard contents to present directory
@@ -2428,6 +2472,7 @@ int main(int argc, char* argv[])
             // Moves clipboard contents to present directory
             case KEY_MV:
                 moveFiles(dir);
+                selectedFiles = 0;
                 break;
 
             // Moves clipboard contents to trash
@@ -2449,7 +2494,10 @@ int main(int argc, char* argv[])
                         displayAlert("Confirm (y/n): ");
                         confirm = wgetch(status_win);
                         if(confirm == 'y')
+                        {
                             removeFiles();
+                            selectedFiles = 0;
+                        }
                         else
                         {
                             displayAlert("ABORTED");
@@ -2546,6 +2594,7 @@ int main(int argc, char* argv[])
                     {
                         int status;
                         waitpid(pid, &status, 0);
+                        setSelectionCount();
                     }
                     refresh();
                 }

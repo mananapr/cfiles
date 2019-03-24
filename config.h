@@ -12,6 +12,9 @@
 // Set to 0 if you want to disable borders
 #define SHOW_BORDERS 1
 
+// Set to 0 if you don't want to see number of selected files in the statusbar
+#define SHOW_SELECTION_COUNT 1
+
 // Program used to open non-text file (Eg: `xdg-open` or `thunar`)
 #define FILE_OPENER "xdg-open"
 
