@@ -22,8 +22,6 @@ install:
 	install -Dm 755 scripts/displayimg $(DEST)/displayimg
 	install -Dm 755 scripts/displayimg_uberzug $(DEST)/displayimg_uberzug
 	install -Dm 755 scripts/clearimg_uberzug $(DEST)/clearimg_uberzug
-	install -Dm 755 scripts/clearimg_uberzug $(DEST)/clearimg_uberzug
-	install -Dm 755 scripts/clearimg_uberzug $(DEST)/clearimg_uberzug
 	install -Dm 644 LICENSE /usr/share/licenses/$(PROG)/LICENSE
 	install -Dm 644 cfiles.1 /usr/local/man/man1/cfiles.1
 
