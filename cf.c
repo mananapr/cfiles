@@ -1531,7 +1531,7 @@ void moveFiles(char *present_dir)
 void init_windows()
 {
     current_win = create_newwin(maxy, maxx/2+2, 0, 0);
-    preview_win = create_newwin(maxy, maxx/2 -1, 0, maxx/2 + 1);
+    preview_win = create_newwin(maxy, maxx/2-1, 0, maxx/2+1);
     status_win = create_newwin(2, maxx, maxy, 0);
     keypad(current_win, TRUE);
 }
@@ -1935,9 +1935,9 @@ int main(int argc, char* argv[])
             }
             wmove(current_win,t+1,2);
             if( checkClipboard(temp_dir) == 0)
-                wprintw(current_win, "%.*s\n", maxx/2+1, directories[i]);
+                wprintw(current_win, "%.*s\n", maxx/2, directories[i]);
             else
-                wprintw(current_win, "* %.*s\n", maxx/2-2, directories[i]);
+                wprintw(current_win, "* %.*s\n", maxx/2-3, directories[i]);
             t++;
         }
 
