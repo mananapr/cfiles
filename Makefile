@@ -4,7 +4,13 @@ LIBS =  -lncursesw
 SRCS = cf.c
 OBJS = $(SRCS: .c = .o)
 PROG = cfiles
-DEST = /usr/local/bin
+
+prefix = /usr/local
+bindir = $(prefix)/bin
+mandir = $(prefix)/man
+
+BINDIR = $(DESTDIR)/$(bindir)
+MANDIR = $(DESTDIR)/$(mandir)
 
 all: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(PROG) $(LIBS)
@@ -17,19 +23,18 @@ clean:
 	rm *~
 
 install:
-	install -Dm 755 $(PROG) $(DEST)/$(PROG)
-	install -Dm 755 scripts/clearimg $(DEST)/clearimg
-	install -Dm 755 scripts/displayimg $(DEST)/displayimg
-	install -Dm 755 scripts/displayimg_uberzug $(DEST)/displayimg_uberzug
-	install -Dm 755 scripts/clearimg_uberzug $(DEST)/clearimg_uberzug
-	install -Dm 644 LICENSE /usr/share/licenses/$(PROG)/LICENSE
-	install -Dm 644 cfiles.1 /usr/local/man/man1/cfiles.1
+	install -Dm 755 $(PROG) $(BINDIR)/$(PROG)
+	install -Dm 755 scripts/clearimg $(BINDIR)/clearimg
+	install -Dm 755 scripts/displayimg $(BINDIR)/displayimg
+	install -Dm 755 scripts/displayimg_uberzug $(BINDIR)/displayimg_uberzug
+	install -Dm 755 scripts/clearimg_uberzug $(BINDIR)/clearimg_uberzug
+	install -Dm 644 cfiles.1 $(MANDIR)/man1/cfiles.1
 
 uninstall:
-	rm -v $(DEST)/$(PROG)
-	rm -v $(DEST)/clearimg
-	rm -v $(DEST)/clearimg_uberzug
-	rm -v $(DEST)/displayimg_uberzug
-	rm -v $(DEST)/displayimg
+	rm -v $(BINDIR)/$(PROG)
+	rm -v $(BINDIR)/clearimg
+	rm -v $(BINDIR)/clearimg_uberzug
+	rm -v $(BINDIR)/displayimg_uberzug
+	rm -v $(BINDIR)/displayimg
 	rm -v /usr/share/licenses/$(PROG)/LICENSE
-	rm -v /usr/local/man/man1/cfiles.1
+	rm -v $(MANDIR)/man1/cfiles.1
