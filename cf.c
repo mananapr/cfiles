@@ -68,6 +68,9 @@ char *prev_dir = NULL;
 // Name of the editor
 char *editor = NULL;
 
+// Name of the shell
+char *shell = NULL;
+
 // char array to work with strtok() and for other one time use
 char *temp_dir = NULL;
 
@@ -196,6 +199,29 @@ void init(int argc, char* argv[])
     uid_t uid = getuid();
     // Get home directory of user from UID
     info = getpwuid(uid);
+
+    // Set the shell
+    if( getenv("SHELL") == NULL)
+    {
+        shell = malloc(10);
+        if(shell == NULL)
+        {
+            printf("%s\n", "Couldn't initialize shell");
+            exit(1);
+        }
+        snprintf(shell, 10, "%s", "/bin/bash");
+    }
+    else
+    {
+        allocSize = snprintf(NULL, 0, "%s", getenv("SHELL"));
+        shell = malloc(allocSize + 1);
+        if(shell == NULL)
+        {
+            printf("%s\n", "Couldn't initialize shell");
+            exit(1);
+        }
+        snprintf(shell, allocSize+1, "%s", getenv("SHELL"));
+    }
 
     // Set the editor
     if( getenv("EDITOR") == NULL)
@@ -2365,7 +2391,7 @@ int main(int argc, char* argv[])
                 searchFlag = 1;
                 break;
 
-            // Opens bash shell in present directory
+            // Opens shell in present directory
             case KEY_SHELL:
                 // Clear Image Preview (If Present)
                 clearImg();
@@ -2373,12 +2399,12 @@ int main(int argc, char* argv[])
                 // End ncurses mode
                 endwin();
 
-                // Create a child process to run bash
+                // Create a child process to run shell
                 pid = fork();
                 if( pid == 0 )
                 {
                     chdir(dir);
-                    execlp("bash", "bash", "-i", (char *)0);
+                    execlp(shell, shell, (char *)0);
                     exit(1);
                 }
                 else
@@ -2748,6 +2774,7 @@ int main(int argc, char* argv[])
     free(scripts_path);
     free(trash_path);
     free(editor);
+    free(shell);
     free(dir);
     free(temp_dir);
     if(last != NULL)
