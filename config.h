@@ -43,6 +43,18 @@
     Change your keybindings in this section
 */
 
+// Go up
+#define KEY_NAVUP 'k'
+
+// Go down
+#define KEY_NAVDOWN 'j'
+
+// Go to next directory / Open file
+#define KEY_NAVNEXT 'l'
+
+// Go to parent directory
+#define KEY_NAVBACK 'h'
+
 // Go to the end of the current directory
 #define KEY_GOEND 'G'
 

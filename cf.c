@@ -2091,26 +2091,26 @@ int main(int argc, char* argv[])
         {
             // Go up
             case KEY_UP:
-            case 'k':
+            case KEY_NAVUP:
                 scrollUp();
                 break;
 
             // Go down
             case KEY_DOWN:
-            case 'j':
+            case KEY_NAVDOWN:
                 scrollDown();
                 break;
 
             // Go to child directory or open file
             case KEY_RIGHT:
-            case 'l':
+            case KEY_NAVNEXT:
             case '\n':
                 goForward();
                 break;
 
             // Go up a directory
             case KEY_LEFT:
-            case 'h':
+            case KEY_NAVBACK:
                 goBack();
                 break;
 
