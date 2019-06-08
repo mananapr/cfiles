@@ -36,5 +36,4 @@ uninstall:
 	rm -v $(BINDIR)/clearimg_uberzug
 	rm -v $(BINDIR)/displayimg_uberzug
 	rm -v $(BINDIR)/displayimg
-	rm -v /usr/share/licenses/$(PROG)/LICENSE
 	rm -v $(MANDIR)/man1/cfiles.1
