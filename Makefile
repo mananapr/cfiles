@@ -1,6 +1,11 @@
 CC = gcc
-CFLAGS = -I. -Wall
-LIBS =  -lncursesw
+
+NCURSES_CFLAGS = `pkg-config --cflags ncursesw`
+NCURSES_LIBS =  `pkg-config --libs ncursesw`
+
+LIBS += $(NCURSES_LIBS)
+CFLAGS += $(NCURSES_CFLAGS)
+
 SRCS = cf.c
 OBJS = $(SRCS: .c = .o)
 PROG = cfiles
@@ -37,3 +42,4 @@ uninstall:
 	rm -v $(BINDIR)/displayimg_uberzug
 	rm -v $(BINDIR)/displayimg
 	rm -v $(MANDIR)/man1/cfiles.1
+
