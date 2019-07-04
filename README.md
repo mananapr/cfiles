@@ -23,6 +23,7 @@ minimal.
 - `w3mimgdisplay` or `Überzug` for image previews
 - `mediainfo` for viewing media info and file sizes
 - `atool` for archive previews
+- `poppler`(specifically `pdftoppm`) for pdf previews
 
 ## Compiling and Installation
 #### Arch Linux
