@@ -129,6 +129,9 @@ int hiddenFlag = SHOW_HIDDEN;
 // Flag to display borders
 int bordersFlag = SHOW_BORDERS;
 
+// Flag to display PDF previews
+int pdfflag = SHOW_PDF_PREVIEWS;
+
 // Stores the last token in the path. For eg, it will store 'a' is path is /b/a
 char *last = NULL;
 
@@ -970,6 +973,30 @@ void getImgPreview(char *filepath, int maxy, int maxx)
 
 
 /*
+    Gets previews of PDF Documents
+*/
+void getPDFPreview(char *filepath, int maxy, int maxx)
+{
+    char imgout[] = "/tmp/prev-001.jpg";
+    pid_t pid;
+    pid = fork();
+
+    if(pid == 0)
+    {
+        execlp("pdftoppm","pdftoppm","-l","1","-jpeg",filepath,"/tmp/prev", (char *)NULL);
+        exit(1);
+    }
+    else
+    {
+        int status;
+        waitpid(pid, &status, 0);
+    }
+    getImgPreview(imgout, maxy, maxx);
+    clearFlagImg = 1;
+}
+
+
+/*
    Gets previews of text in files
 */
 void getTextPreview(char *filepath, int maxy, int maxx)
@@ -1153,6 +1180,8 @@ void getPreview(char *filepath, int maxy, int maxx)
         getDummyVidPreview(filepath, maxy, maxx);
     else if(strcasecmp("zip",last) == 0 || strcasecmp("rar",last) == 0 || strcasecmp("cbr",last) == 0 || strcasecmp("cbz",last) == 0)
         getArchivePreview(filepath, maxy, maxx);
+    else if(strcasecmp("pdf",last) == 0 && pdfflag == 1)
+        getPDFPreview(filepath, maxy, maxx);
     else
         getTextPreview(filepath, maxy, maxx);
 }
