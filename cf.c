@@ -977,13 +977,13 @@ void getImgPreview(char *filepath, int maxy, int maxx)
 */
 void getPDFPreview(char *filepath, int maxy, int maxx)
 {
-    char imgout[] = "/tmp/prev-001.jpg";
+    char imgout[] = "/tmp/prev.jpg";
     pid_t pid;
     pid = fork();
 
     if(pid == 0)
     {
-        execlp("pdftoppm","pdftoppm","-l","1","-jpeg",filepath,"/tmp/prev", (char *)NULL);
+        execlp("pdftoppm","pdftoppm","-l","1","-jpeg",filepath,"-singlefile", "/tmp/prev", (char *)NULL);
         exit(1);
     }
     else
