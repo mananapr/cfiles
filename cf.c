@@ -22,6 +22,7 @@
 #include <locale.h>
 #include <fcntl.h>
 #include <pwd.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -31,6 +32,9 @@
 //////////////////////
 // GLOBAL VARIABLES //
 //////////////////////
+
+// Stores the value of signal most recently raised
+int raised_signal=-1;
 
 // To store number of files in directory
 int len=0;
@@ -154,6 +158,55 @@ int startx, starty, maxx, maxy;
 //////////////////////
 // HELPER FUNCTIONS //
 //////////////////////
+
+
+/*
+   Displays current status in the status bar
+*/
+void displayStatus()
+{
+    wmove(status_win,1,0);
+    wattron(status_win, COLOR_PAIR(2));
+    if( SHOW_SELECTION_COUNT == 1 )
+    {
+        wprintw(status_win,"[%d] ", selectedFiles);
+    }
+    wprintw(status_win, "(%d/%d)", selection+1, len);
+    wprintw(status_win, " %s", dir);
+    wattroff(status_win, COLOR_PAIR(2));
+    wattron(status_win, COLOR_PAIR(3));
+    if(strcasecmp(dir,"/") == 0)
+        wprintw(status_win, "%s", selected_file);
+    else
+        wprintw(status_win, "/%s", selected_file);
+    wattroff(status_win, COLOR_PAIR(3));
+    wrefresh(status_win);
+}
+
+
+/*
+   Displays message on status bar
+*/
+void displayAlert(char *message)
+{
+    wclear(status_win);
+    wattron(status_win, A_BOLD);
+    wprintw(status_win, "\n%s", message);
+    wattroff(status_win, A_BOLD);
+    wrefresh(status_win);
+}
+
+
+/*
+    Signal Handler. Sets `raised_signal` to `signal`
+*/
+static void cb_sig(int signal)
+{
+    if (signal == SIGUSR1)
+        raised_signal = SIGUSR1;
+    else if (signal == SIGCHLD)
+        raised_signal = SIGCHLD;
+}
 
 
 /*
@@ -977,7 +1030,20 @@ void getImgPreview(char *filepath, int maxy, int maxx)
 */
 void getPDFPreview(char *filepath, int maxy, int maxx)
 {
+    // Set the signal handler
+    struct sigaction act;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    act.sa_handler = cb_sig;
+
+    if(sigaction(SIGUSR1, &act, NULL) == -1) 
+        printf("unable to handle siguser1\n");
+    if (sigaction(SIGCHLD, &act, NULL) == -1) 
+        printf("unable to handle sigchild\n");
+
+    // Target name of the PDF
     char imgout[] = "/tmp/prev.jpg";
+
     pid_t pid;
     pid = fork();
 
@@ -988,11 +1054,27 @@ void getPDFPreview(char *filepath, int maxy, int maxx)
     }
     else
     {
-        int status;
-        waitpid(pid, &status, 0);
+        //displayAlert("WORKING... PRESS ANY KEY TO ABORT");
+        if (ERR == getch())
+        {}
+        else
+        {
+            raise(SIGUSR1);
+        }
+        if (raised_signal == SIGUSR1)
+        {
+            kill(pid, SIGINT);
+            //displayStatus();
+            return;
+        }
+        else if (raised_signal == SIGCHLD)
+        {
+            getImgPreview(imgout, maxy, maxx);
+            clearFlagImg = 1;
+            //displayStatus();
+            return;
+        }
     }
-    getImgPreview(imgout, maxy, maxx);
-    clearFlagImg = 1;
 }
 
 
@@ -1111,6 +1193,17 @@ void getArchivePreview(char *filepath, int maxy, int maxx)
     }
     snprintf(preview_path, allocSize+1, "%s/preview", cache_path);
 
+    // Set the signal handler
+    struct sigaction act;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    act.sa_handler = cb_sig;
+
+    if(sigaction(SIGUSR1, &act, NULL) == -1) 
+        printf("unable to handle siguser1\n");
+    if (sigaction(SIGCHLD, &act, NULL) == -1) 
+        printf("unable to handle sigchild\n");
+
     // Create a child process to run "atool -lq filepath > ~/.cache/cfiles/preview"
     pid = fork();
     if( pid == 0 )
@@ -1127,10 +1220,27 @@ void getArchivePreview(char *filepath, int maxy, int maxx)
     }
     else
     {
-        int status;
-        waitpid(pid, &status, 0);
-        getTextPreview(preview_path, maxy, maxx);
-        free(preview_path);
+        //displayAlert("WORKING... PRESS ANY KEY TO ABORT");
+        if (ERR == getch())
+        {}
+        else
+        {
+            raise(SIGUSR1);
+        }
+        if (raised_signal == SIGUSR1)
+        {
+            kill(pid, SIGINT);
+            //displayStatus();
+            free(preview_path);
+            return;
+        }
+        else if (raised_signal == SIGCHLD)
+        {
+            //displayStatus();
+            getTextPreview(preview_path, maxy, maxx);
+            free(preview_path);
+            return;
+        }
     }
 }
 
@@ -1593,43 +1703,6 @@ void init_windows()
 
 
 /*
-   Displays current status in the status bar
-*/
-void displayStatus()
-{
-    wmove(status_win,1,0);
-    wattron(status_win, COLOR_PAIR(2));
-    if( SHOW_SELECTION_COUNT == 1 )
-    {
-        wprintw(status_win,"[%d] ", selectedFiles);
-    }
-    wprintw(status_win, "(%d/%d)", selection+1, len);
-    wprintw(status_win, " %s", dir);
-    wattroff(status_win, COLOR_PAIR(2));
-    wattron(status_win, COLOR_PAIR(3));
-    if(strcasecmp(dir,"/") == 0)
-        wprintw(status_win, "%s", selected_file);
-    else
-        wprintw(status_win, "/%s", selected_file);
-    wattroff(status_win, COLOR_PAIR(3));
-    wrefresh(status_win);
-}
-
-
-/*
-   Displays message on status bar
-*/
-void displayAlert(char *message)
-{
-    wclear(status_win);
-    wattron(status_win, A_BOLD);
-    wprintw(status_win, "\n%s", message);
-    wattroff(status_win, A_BOLD);
-    wrefresh(status_win);
-}
-
-
-/*
     Refresh ncurses windows
 */
 void refreshWindows()
@@ -1900,7 +1973,6 @@ int main(int argc, char* argv[])
     // Main Loop
     do
     {
-        signal(SIGCHLD, SIG_IGN);
         // Stores length of VLA `directories`
         int temp_len;
 
@@ -2117,6 +2189,17 @@ int main(int argc, char* argv[])
                 getPreview(next_dir,maxy,maxx/2+2);
             }
         }
+
+        // Remove signal handler used for preview
+        struct sigaction act;
+        sigemptyset(&act.sa_mask);
+        act.sa_flags = 0;
+        act.sa_handler = SIG_DFL;
+
+        if(sigaction(SIGUSR1, &act, NULL) == -1) 
+            printf("unable to handle siguser1\n");
+        if(sigaction(SIGCHLD, &act, NULL) == -1) 
+            printf("unable to handle sigchild\n");
 
         // Disable STANDOUT and colors attributes if enabled
         wattroff(current_win, A_STANDOUT);
