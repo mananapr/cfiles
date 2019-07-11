@@ -863,7 +863,7 @@ void openFile(char *filepath)
         else
         {
             int status;
-            waitpid(-1, &status, 0);
+            waitpid(pid, &status, 0);
             return;
         }
     }
