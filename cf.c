@@ -1151,11 +1151,17 @@ void getTextPreview(char *filepath, int maxy, int maxx)
         execlp("cp","cp",filepath,preview_path,(char*)0);
         exit(1);
     }
+    else
+    {
+        int status;
+        waitpid(pid, &status, 0);
+    }
 
     // Print the preview
     FILE *fp = fopen(filepath,"r");
     if(fp == NULL)
     {
+        printf("Error with preview\n");
         free(preview_path);
         return;
     }
@@ -1237,7 +1243,7 @@ void getArchivePreview(char *filepath, int maxy, int maxx)
         else if (raised_signal == SIGCHLD)
         {
             //displayStatus();
-            getTextPreview(preview_path, maxy, maxx);
+            getTextPreview(filepath, maxy, maxx);
             free(preview_path);
             return;
         }
@@ -1288,7 +1294,7 @@ void getPreview(char *filepath, int maxy, int maxx)
     }
     else if(strcasecmp("mp4",last) == 0 || strcasecmp("mkv",last) == 0 || strcasecmp("avi",last) == 0 || strcasecmp("webm",last) == 0)
         getDummyVidPreview(filepath, maxy, maxx);
-    else if(strcasecmp("zip",last) == 0 || strcasecmp("rar",last) == 0 || strcasecmp("cbr",last) == 0 || strcasecmp("cbz",last) == 0)
+    else if(strcasecmp("zip",last) == 0 || strcasecmp("rar",last) == 0 || strcasecmp("tar",last) || strcasecmp("bz2",last) || strcasecmp("gz",last) || strcasecmp("xz",last) || strcasecmp("cbr",last) == 0 || strcasecmp("cbz",last) == 0)
         getArchivePreview(filepath, maxy, maxx);
     else if(strcasecmp("pdf",last) == 0 && pdfflag == 1)
         getPDFPreview(filepath, maxy, maxx);
