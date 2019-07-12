@@ -10,9 +10,9 @@ SRCS = cf.c
 OBJS = $(SRCS: .c = .o)
 PROG = cfiles
 
-prefix = /usr/local
+prefix = usr
 bindir = $(prefix)/bin
-mandir = $(prefix)/man
+mandir = $(prefix)/share/man
 
 BINDIR = $(DESTDIR)/$(bindir)
 MANDIR = $(DESTDIR)/$(mandir)
