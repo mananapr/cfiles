@@ -22,10 +22,10 @@
 #define FILE_OPENER "xdg-open"
 
 // Display Image Script
-#define DISPLAYIMG "/usr/bin/displayimg_uberzug"
+#define DISPLAYIMG "/usr/share/cfiles/scripts/displayimg_uberzug"
 
 // Clear Image Preview Script
-#define CLEARIMG "/usr/bin/clearimg_uberzug"
+#define CLEARIMG "/usr/share/cfiles/scripts/clearimg_uberzug"
 
 
 /*
