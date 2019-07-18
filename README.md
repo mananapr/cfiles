@@ -53,6 +53,8 @@ to install.
 | <kbd>H</kbd> | Go to top of current view |
 | <kbd>M</kbd> | Go to middle of current view |
 | <kbd>L</kbd> | Go to bottom of current view |
+| <kbd>pgup</kbd> | Scroll Up One Page |
+| <kbd>pgdn</kbd> | Scroll Down One Page |
 | <kbd>f</kbd> | Search using fzf |
 | <kbd>F</kbd> | Search using fzf in the present directory |
 | <kbd>S</kbd> | Open Shell in present directory |

@@ -1896,6 +1896,31 @@ void scrollDown()
 
 
 /*
+    Goes to next page
+*/
+void nextPage()
+{
+    if(selection + maxy-1 < len)
+    {
+        start = start + maxy-1;
+        selection = selection + maxy-1;
+        wclear(current_win);
+    }
+}
+
+
+/*
+    Goes to previous page
+*/
+void prevPage()
+{
+    start = ( start - maxy-1 > 0 ) ? start - maxy-1 : 0;
+    selection = ( selection - maxy-1 > 0 ? selection - maxy-1 : 0);
+    wclear(current_win);
+}
+
+
+/*
     Goes to child directory or opens a file
 */
 void goForward()
@@ -2256,6 +2281,16 @@ int main(int argc, char* argv[])
             case KEY_LEFT:
             case KEY_NAVBACK:
                 goBack();
+                break;
+
+            // Go to next page
+            case KEY_NPAGE:
+                nextPage();
+                break;
+
+            // Go to previous page
+            case KEY_PPAGE:
+                prevPage();
                 break;
 
             // Goto start
