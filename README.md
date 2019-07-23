@@ -1,4 +1,4 @@
-<h1 style="text-align:center;">cfiles</h1>
+<h1 align="center">cfiles</h1>
 
 <p align="center">
 <a href="https://github.com/mananapr/cfiles/releases/latest"><img src="https://img.shields.io/github/release/mananapr/cfiles/all.svg" alt="Latest release" /></a>
