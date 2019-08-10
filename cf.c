@@ -304,27 +304,27 @@ void init(int argc, char* argv[])
 
     // Get the cache directory path
     struct stat st = {0};
-    if( getenv("XDG_CACHE_HOME") == NULL)
+    if( getenv("XDG_CONFIG_HOME") == NULL)
     {
-        allocSize = snprintf(NULL,0,"%s/.cache/cfiles",info->pw_dir);
+        allocSize = snprintf(NULL,0,"%s/.config/cfiles",info->pw_dir);
         cache_path = malloc(allocSize+1);
         if(cache_path == NULL)
         {
             printf("%s\n", "Couldn't initialize cache path");
             exit(1);
         }
-        snprintf(cache_path,allocSize+1,"%s/.cache/cfiles",info->pw_dir);
+        snprintf(cache_path,allocSize+1,"%s/.config/cfiles",info->pw_dir);
     }
     else
     {
-        allocSize = snprintf(NULL,0,"%s/cfiles",getenv("XDG_CACHE_HOME"));
+        allocSize = snprintf(NULL,0,"%s/cfiles",getenv("XDG_CONFIG_HOME"));
         cache_path = malloc(allocSize+1);
         if(cache_path == NULL)
         {
             printf("%s\n", "Couldn't initialize cache path");
             exit(1);
         }
-        snprintf(cache_path,allocSize+1,"%s/cfiles",getenv("XDG_CACHE_HOME"));
+        snprintf(cache_path,allocSize+1,"%s/cfiles",getenv("XDG_CONFIG_HOME"));
     }
     // Make the cache directory
     if (stat(cache_path, &st) == -1) {
@@ -1210,7 +1210,7 @@ void getArchivePreview(char *filepath, int maxy, int maxx)
     if (sigaction(SIGCHLD, &act, NULL) == -1) 
         printf("unable to handle sigchild\n");
 
-    // Create a child process to run "atool -lq filepath > ~/.cache/cfiles/preview"
+    // Create a child process to run "atool -lq filepath > ~/.config/cfiles/preview"
     pid = fork();
     if( pid == 0 )
     {
@@ -1325,7 +1325,7 @@ void getVidPreview(char *filepath, int maxy, int maxx)
 
     endwin();
 
-    // Create a child process to run "mediainfo filepath > ~/.cache/cfiles/preview"
+    // Create a child process to run "mediainfo filepath > ~/.config/cfiles/preview"
     pid = fork();
     if( pid == 0 )
     {
