@@ -73,6 +73,7 @@ to install.
 | <kbd>b</kbd> | Toggle borders |
 | <kbd>'</kbd> | View/Goto bookmarks |
 | <kbd>m</kbd> | Add bookmark |
+| <kbd>E</kbd> | Edit bookmarks |
 | <kbd>p</kbd> | Run external script |
 | <kbd>r</kbd> | Reload |
 | <kbd>q</kbd> | Quit |

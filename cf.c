@@ -2728,6 +2728,35 @@ int main(int argc, char* argv[])
                 }
                 break;
 
+            // Edit Bookmarks
+            case KEY_RMBOOKMARK:
+                // Exit curses mode to edit clipboard
+                endwin();
+
+                if( access( bookmarks_path, F_OK ) != -1 )
+                {
+                    // Create a child process to show bookmarks
+                    pid = fork();
+                    if( pid == 0 )
+                    {
+                        execlp(editor, editor, bookmarks_path, (char *)0);
+                        exit(1);
+                    }
+                    else
+                    {
+                        int status;
+                        waitpid(pid, &status, 0);
+                        setSelectionCount();
+                    }
+                    refresh();
+                }
+                else
+                {
+                    displayAlert("Bookmark List is Empty!");
+                    sleep(1);
+                }
+                break;
+
             // See selection list
             case KEY_VIEWSEL:
                 // Exit curses mode to show clipboard

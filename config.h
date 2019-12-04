@@ -127,6 +127,9 @@
 // Add Bookmark Key
 #define KEY_ADDBOOKMARK 'm'
 
+// Edit Bookmark Key
+#define KEY_RMBOOKMARK 'E'
+
 // External Scripts Key
 #define KEY_SCRIPT 'p'
 
