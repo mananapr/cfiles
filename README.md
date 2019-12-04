@@ -128,36 +128,3 @@ I wanted to improve my C and learn ncurses so I decided this would be an ideal p
 
 Apart from this, I have always wanted an alternative to ranger that is faster while still having
 a similar UI.
-
-## Todo
-- [x] Improve Upwards Scrolling
-- [x] Show sorted directories before files
-- [x] Fix the `G` keybinding
-- [x] Add basic operations like deleting, copying etc.
-- [x] Add rename functionality
-- [x] Add option to show selection list
-- [x] Show current progress or status of copying files
-- [x] Add functionality to open files
-- [x] Add image previews using w3mimgdisplay
-- [x] Preserve aspect ratio in image previews
-- [x] Add fuzzy file search using fzf
-- [x] Find a way to redraw windows after displaying image previews or running fzf
-- [x] Find a way to remove cursor after running fzf
-- [x] Select the file directly from fzf
-- [x] Supress output from xdg-open
-- [x] Find a way to remember selection position of parent directory
-- [x] Add open in terminal functionality
-- [x] Add file previews
-- [x] Improve file previews
-- [x] Add config file for easy user customizability
-- [x] Add more options in config file
-- [x] Fix random segfaults
-- [x] Show more info in the statusbar
-- [x] Add color support
-- [x] Add bookmarks
-- [x] Add ability to run external scripts
-- [x] Remove hardcoded paths
-- [x] Use dynamic allocation wherever static arrays are used
-- [x] Update README section about Image previews and add about `Uberzug`
-- [x] Replace `system()` by safer functions
-- [ ] Refactor Code
