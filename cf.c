@@ -589,7 +589,8 @@ char* replace(char* str, char* a, char* b)
     int len  = strlen(str);
     int lena = strlen(a);
     int lenb = strlen(b);
-    for (char* p = str; (p = strstr(p, a)); ++p)
+    char* p;
+    for (p = str; (p = strstr(p, a)); ++p)
     {
         if (lena != lenb) // shift end as needed
             memmove(p+lenb, p+lena, len - (p - str) + lenb);
