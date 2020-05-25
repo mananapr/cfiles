@@ -1161,7 +1161,9 @@ void getTextPreview(char *filepath, int maxy, int maxx)
     FILE *fp = fopen(filepath,"r");
     if(fp == NULL)
     {
-        printf("Error with preview\n");
+        wmove(preview_win,1,2);
+        wprintw(preview_win,"%.*s",maxx-4,"Can't Access");
+        wrefresh(preview_win);
         free(preview_path);
         return;
     }
