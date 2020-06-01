@@ -33,6 +33,9 @@
 // GLOBAL VARIABLES //
 //////////////////////
 
+// Stores signal set containing SIGNWINCH
+sigset_t x;
+
 // Stores the value of signal most recently raised
 int raised_signal=-1;
 
@@ -248,6 +251,10 @@ void setSelectionCount()
 */
 void init(int argc, char* argv[])
 {
+    // For masking SIGWINCH signals
+    sigemptyset (&x);
+    sigaddset(&x, SIGWINCH);
+
     // Set Locale (For wide characters)
     setlocale(LC_ALL, "");
 
@@ -844,6 +851,19 @@ void getMIME(char *filepath, char mime[50])
 
 
 /*
+   Creates current_win, preview_win and status_win
+*/
+void init_windows()
+{
+    current_win = create_newwin(maxy, maxx/2+2, 0, 0);
+    preview_win = create_newwin(maxy, maxx/2-1, 0, maxx/2+1);
+    status_win = create_newwin(2, maxx, maxy, 0);
+    keypad(current_win, TRUE);
+    sigprocmask(SIG_UNBLOCK, &x, NULL);
+}
+
+
+/*
    Opens a file using FILE_OPENER
 */
 void openFile(char *filepath)
@@ -853,6 +873,8 @@ void openFile(char *filepath)
     if(strcmp(mime,"text") == 0)
     {
         endwin();
+        // Block SIGWINCH
+        sigprocmask(SIG_BLOCK, &x, NULL);
         // Make a child process to edit file
         pid_t pid;
         pid = fork();
@@ -1696,18 +1718,6 @@ void moveFiles(char *present_dir)
     fclose(f);
     refresh();
     remove(clipboard_path);
-}
-
-
-/*
-   Creates current_win, preview_win and status_win
-*/
-void init_windows()
-{
-    current_win = create_newwin(maxy, maxx/2+2, 0, 0);
-    preview_win = create_newwin(maxy, maxx/2-1, 0, maxx/2+1);
-    status_win = create_newwin(2, maxx, maxy, 0);
-    keypad(current_win, TRUE);
 }
 
 
@@ -2738,6 +2748,8 @@ int main(int argc, char* argv[])
 
                 if( access( bookmarks_path, F_OK ) != -1 )
                 {
+                    // Block SIGWINCH
+                    sigprocmask(SIG_BLOCK, &x, NULL);
                     // Create a child process to show bookmarks
                     pid = fork();
                     if( pid == 0 )
@@ -2789,6 +2801,9 @@ int main(int argc, char* argv[])
 
             // Edit selection list
             case KEY_EDITSEL:
+                // Block SIGWINCH
+                sigprocmask(SIG_BLOCK, &x, NULL);
+
                 // Exit curses mode to edit clipboard
                 endwin();
 
