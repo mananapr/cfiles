@@ -870,7 +870,8 @@ void openFile(char *filepath)
 {
     char mime[50];
     getMIME(filepath, mime);
-    if((strcmp(mime,"text") == 0) || (strcmp(mime, "application/x-shellscript\n") == 0))
+    mime[strcspn(mime, "\n")] = 0;
+    if((strcmp(mime,"text") == 0) || (strcmp(mime, "application/x-shellscript") == 0))
     {
         endwin();
         // Block SIGWINCH
