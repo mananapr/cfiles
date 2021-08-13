@@ -475,9 +475,10 @@ void curses_init()
     noecho();
     curs_set(0);
     start_color();
-    init_pair(1, DIR_COLOR, 0);
-    init_pair(2, STATUS_FILECOUNT_COLOR, 0);
-    init_pair(3, STATUS_SELECTED_COLOR, 0);
+    use_default_colors();
+    init_pair(1, DIR_COLOR, BG_COLOR);
+    init_pair(2, STATUS_FILECOUNT_COLOR, BG_COLOR);
+    init_pair(3, STATUS_SELECTED_COLOR, BG_COLOR);
 }
 
 

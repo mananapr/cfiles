@@ -32,6 +32,9 @@
     Color Settings
 */
 
+// Shell Color number to use for the background 
+#define BG_COLOR -1
+
 // Shell Color Number to use for directories
 #define DIR_COLOR 4
 
