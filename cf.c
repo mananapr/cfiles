@@ -1873,7 +1873,7 @@ void handleFlags(char** directories)
 void scrollUp()
 {
     selection--;
-    selection = ( selection < 0 ) ? 0 : selection;
+    selection = ( selection < 0 ) ? len-1 : selection;
     // Scrolling
     if(len >= maxy-1)
         if(selection <= start + maxy/2)
@@ -1895,7 +1895,7 @@ void scrollUp()
 void scrollDown()
 {
     selection++;
-    selection = ( selection > len-1 ) ? len-1 : selection;
+    selection = ( selection > len-1 ) ? 0 : selection;
     // Scrolling
     if(len >= maxy-1)
         if(selection - 1 > maxy/2)
